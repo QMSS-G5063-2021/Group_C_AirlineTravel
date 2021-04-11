@@ -35,6 +35,7 @@ df_sub <- df %>% filter(!DEST_STATE_ABR %in% c("AK","HI","PR","VI","TT")) %>%
   filter(!ORIGIN_STATE_ABR %in% c("AK","HI","PR","VI","TT")) %>%
   select(PASSENGERS,ORIGIN_CITY_NAME,ORIGIN_STATE_ABR,
          DEST_CITY_NAME,DEST_STATE_ABR, MONTH)
+
 or <- df_sub %>% pull(ORIGIN_CITY_NAME)
 dest <- df_sub %>% pull(DEST_CITY_NAME)
 pairs <- c()
