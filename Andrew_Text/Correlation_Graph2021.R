@@ -6,6 +6,7 @@ library(igraph)
 library(tidygraph)
 
 ## Load Data 
+setwd("~/dataviz2021/Group_Project/Andrew_Text")
 clean <- readRDS('Cleaned_Text2021.RData')
 ## Cleaning and preparing for correlation
 word_cors <- clean %>%
@@ -61,7 +62,7 @@ new_g_tbl <- g_tbl %>%
 ### Graph
 set.seed(2021)
 windows.options(width=3.75, height=3.75)
-ggraph(new_g_tbl, layout = "fr") +
+cor_graph <- ggraph(new_g_tbl, layout = "fr") +
   geom_edge_link(aes(edge_alpha = correlation), show.legend = FALSE) +
   geom_node_point(aes(color = airline), size = 5) + 
   geom_node_text(aes(label = name), repel = TRUE) +
@@ -70,3 +71,7 @@ ggraph(new_g_tbl, layout = "fr") +
         strip.background = element_rect(colour=NA, fill=NA),
         legend.position =  'none',
         plot.title = element_text(vjust=2, hjust = 0.5))
+
+
+## Save
+ggsave(cor_graph, file="cor_graph.png", width = 10, height = 6, dpi = 1000)

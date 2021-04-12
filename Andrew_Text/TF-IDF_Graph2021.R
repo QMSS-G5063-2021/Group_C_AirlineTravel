@@ -6,7 +6,10 @@ library(igraph)
 library(tidygraph)
 
 ## Load Data and Cleaning Strings
+setwd("~/dataviz2021/Group_Project/Andrew_Text")
 clean <- readRDS('Cleaned_Text2021.RData')
+
+
 tidy_2021 <- clean %>%
   mutate(text = tolower(text)) %>%
   unnest_tokens(output = word, input = text) %>% 
@@ -50,7 +53,7 @@ airline_tf_idf <- tidy_2021 %>%
   bind_tf_idf(word, airline, n)
 
 ## Graph
-airline_tf_idf %>%
+tfidf_graph <- airline_tf_idf %>%
   group_by(airline) %>%
   slice_max(tf_idf, n = 5) %>%
   ungroup() %>%
@@ -65,3 +68,7 @@ airline_tf_idf %>%
   theme(plot.title = element_text(vjust=2, hjust = 0.5),
         axis.title.x = element_text(vjust = -1),
         axis.title.y = element_text(vjust = 1))
+
+## Save
+
+ggsave(tfidf_graph, file="tfidf_graph.png", width = 10, height = 6, dpi = 1000)
