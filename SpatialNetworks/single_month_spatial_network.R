@@ -3,13 +3,12 @@
 states_sf <- get_urbn_map("states", sf = TRUE)%>%
   filter(!state_name %in% c("Hawaii","Alaska"))
 
-
-
-par(mfrow=c(6,2))
 month <- c("January","February","March","April","May","June")
 month_abb <- c("JAN","FEB","MAR","APR","MAY","JUN")
 
-i <- 1 # for January
+j <- "January"
+
+i <- match("January",month) # for January
   
   title <- paste0("Monthly Change in Domestic Air Traffic Routes in ",month[i]," 2020")
   graph <- states_sf %>% 
