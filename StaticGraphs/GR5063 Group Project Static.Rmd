@@ -19,7 +19,7 @@ planes <- read_csv("~/Downloads/430389636_T_T100D_MARKET_US_CARRIER_ONLY.csv")
 ```{r}
 # January to June 2020
 planes <- planes %>%
-  filter(MONTH <= 6)
+  filter(YEAR == 2020)
 ```
 
 ```{r}
@@ -116,13 +116,16 @@ ggplot(planesTop10Act, aes(x = MONTH, y = PASSENGERS, fill = AIRPORT, color = AI
   geom_point(shape=21, color="black", size=3) +
   xlab("Month") +
   ylab("Number of Passengers") +
-  scale_x_continuous(breaks = c(1,2,3,4,5,6),
+  scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12),
                      labels = c("January","February",
-                                "March","April","May","June")) +
+                                "March","April","May","June",
+                                "July", "August", "September",
+                                "October", "November", "December")) +
   scale_y_continuous(labels = scales::comma) +
   ggtitle("Passengers per Month by Airport") +
   theme(plot.title = element_text(hjust = 0.5)) +
-  theme(plot.title = element_text(face = "bold"))
+  theme(plot.title = element_text(face = "bold")) +
+  theme(axis.text.x = element_text(angle=45, vjust = 0.5, size = 10))
 ```
 
 ```{r}
@@ -132,11 +135,14 @@ ggplot(planesTop10Airlines, aes(x = MONTH, y = PASSENGERS, fill = AIRLINE, color
   geom_point(shape=21, color="black", size=3) +
   xlab("Month") +
   ylab("Number of Passengers") +
-  scale_x_continuous(breaks = c(1,2,3,4,5,6),
+  scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12),
                      labels = c("January","February",
-                                "March","April","May","June")) +
+                                "March","April","May","June",
+                                "July", "August", "September",
+                                "October", "November", "December")) +
   scale_y_continuous(labels = scales::comma) +
   ggtitle("Passengers per Month by Airline") +
   theme(plot.title = element_text(hjust = 0.5)) +
-  theme(plot.title = element_text(face = "bold"))
+  theme(plot.title = element_text(face = "bold")) +
+  theme(axis.text.x = element_text(angle=45, vjust = 0.5, size = 10))
 ```
