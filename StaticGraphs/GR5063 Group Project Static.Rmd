@@ -111,38 +111,38 @@ planesTop10Airlines <- planes %>%
 
 ```{r}
 # FINAL VISUALIZATION, BY AIRPORT (CONNECTED DOT PLOT)
-ggplot(planesTop10Act, aes(x = MONTH, y = PASSENGERS, fill = AIRPORT, color = AIRPORT)) +
+ggplot(planesTop10Act, aes(x = MONTH, y = PASSENGERS/1000000, fill = reorder(AIRPORT, -PASSENGERS), color = reorder(AIRPORT, -PASSENGERS))) +
   geom_line() +
   geom_point(shape=21, color="black", size=3) +
   xlab("Month") +
-  ylab("Number of Passengers") +
+  ylab("Number of Passengers (in Millions)") +
   scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12),
                      labels = c("January","February",
                                 "March","April","May","June",
                                 "July", "August", "September",
                                 "October", "November", "December")) +
-  scale_y_continuous(labels = scales::comma) +
   ggtitle("Passengers per Month by Airport") +
   theme(plot.title = element_text(hjust = 0.5)) +
   theme(plot.title = element_text(face = "bold")) +
-  theme(axis.text.x = element_text(angle=45, vjust = 0.5, size = 10))
+  theme(axis.text.x = element_text(angle=45, vjust = 0.5, size = 10)) +
+  labs(fill = "Airport", color = "Airport")
 ```
 
 ```{r}
 # FINAL VISUALIZATION, BY AIRLINE (CONNECTED DOT PLOT)
-ggplot(planesTop10Airlines, aes(x = MONTH, y = PASSENGERS, fill = AIRLINE, color = AIRLINE)) +
+ggplot(planesTop10Airlines, aes(x = MONTH, y = PASSENGERS/1000000, fill = reorder(AIRLINE, -PASSENGERS), color = reorder(AIRLINE, -PASSENGERS))) +
   geom_line() +
   geom_point(shape=21, color="black", size=3) +
   xlab("Month") +
-  ylab("Number of Passengers") +
+  ylab("Number of Passengers (in Millions)") +
   scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12),
                      labels = c("January","February",
                                 "March","April","May","June",
                                 "July", "August", "September",
                                 "October", "November", "December")) +
-  scale_y_continuous(labels = scales::comma) +
   ggtitle("Passengers per Month by Airline") +
   theme(plot.title = element_text(hjust = 0.5)) +
   theme(plot.title = element_text(face = "bold")) +
-  theme(axis.text.x = element_text(angle=45, vjust = 0.5, size = 10))
+  theme(axis.text.x = element_text(angle=45, vjust = 0.5, size = 10)) +
+  labs(fill = "Airline", color = "Airline")
 ```
