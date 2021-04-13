@@ -1,0 +1,84 @@
+---
+title: "Text Analysis Data Viz"
+author: "Andrew Lai"
+date: "05/04/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message = FALSE}
+library(rtweet)
+library(httpuv)
+library(tidyverse)
+library(tidyr)
+library(tidytext)
+```
+
+
+```{r}
+
+api_key <- "vrGCRIDHNyVAgFKQ90ahl035f"
+api_secret_key <- "y28bapU9649JoAksDOPOImRcregtWCuwD2qrL3XH7aDAY7k7ku"
+access_token <- "74800858-9GfN1LzJfPbK2nHdiZ5TgUEKz2HjXPaUVV7n5BHkj"
+access_token_secret <- "RB301JmJDrV7q6IOTj2EbGUQqSGPhliDLkjJzJ6UWKEM7"
+
+
+```
+
+```{r}
+token <- create_token(
+  app = "sentimentanalysisadidas",
+  consumer_key = api_key,
+  consumer_secret = api_secret_key,
+  access_token = access_token,
+  access_secret = access_token_secret)
+
+```
+
+
+```{r}
+Alaska_At <- search_tweets("@AlaskaAir", n = 1000, include_rts = FALSE)
+Delta_At <- search_tweets("@Delta", n = 1000, include_rts = FALSE)
+Delta_airline <- search_tweets("deltaairline", n = 1000, include_rts = FALSE)
+United_At <- search_tweets("@United", n = 1000, include_rts = FALSE)
+United_airline <- search_tweets("unitedair", n = 1000, include_rts = FALSE)
+Southwest_At <- search_tweets("@SouthWestAir", n = 1000, include_rts = FALSE)
+Southwest_airline <- search_tweets("southwestairline", n = 1000, 
+                                   include_rts = FALSE)
+American_at <- search_tweets("@AmericanAir", n = 1000, include_rts = FALSE)
+American_airline <- search_tweets("americanairlines", n = 1000, include_rts = FALSE)
+
+
+
+
+```
+
+```{r}
+df <- rbind(Alaska_At, Delta_At, Delta_airline, United_At,
+            United_airline, Southwest_At, Southwest_airline, 
+            American_at, American_airline)
+```
+
+```{r}
+df <- df %>% distinct(status_id, .keep_all= TRUE)
+
+
+```
+
+```{r}
+# First coerce the data.frame to all-character
+airline2021 = data.frame(lapply(df, as.character), stringsAsFactors=FALSE)
+
+# write file
+write.csv(airline2021,"airline2021.csv",  row.names = FALSE)
+
+```
+
+

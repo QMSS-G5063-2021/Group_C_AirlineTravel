@@ -1,0 +1,148 @@
+---
+title: "GR5063 Group Project Static"
+author: "Ian Lightfoot"
+date: "4/9/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readr)
+library(ggplot2)
+library(dplyr)
+planes <- read_csv("~/Downloads/430389636_T_T100D_MARKET_US_CARRIER_ONLY.csv")
+```
+
+```{r}
+# January to June 2020
+planes <- planes %>%
+  filter(YEAR == 2020)
+```
+
+```{r}
+# Number of Flights by Month (NOT USING)
+# ggplot(planes) +
+#   geom_bar(stat = "count", aes(x = MONTH), fill = "burlywood4") +
+#   ggtitle("Flights by Month") +
+#   theme(plot.title = element_text(hjust = 0.5)) +
+#   theme(plot.title = element_text(face = "bold")) +
+#   xlab("Month") +
+#   ylab("Count") +
+#   scale_x_continuous(breaks = c(1,2,3,4,5,6),
+#                      labels = c("January","February",
+#                                 "March","April","May","June")) +
+#   theme(axis.text.x = element_text(angle=45, vjust = 0.5, size = 10)) +
+#   scale_y_continuous(labels = scales::comma)
+```
+
+```{r}
+# Number of Passengers by Month (NOT AS STRONG AS LAST PLOT)
+# ggplot(planes) +
+#   geom_bar(stat = "identity", aes(x = MONTH, y = PASSENGERS), fill = "burlywood4") +
+#   scale_x_continuous(breaks = c(1,2,3,4,5,6),
+#                    labels = c("January","February",
+#                               "March","April","May","June")) +
+#   theme(axis.text.x = element_text(angle=45, vjust = 0.5, size = 10)) +
+#   scale_y_continuous(labels = scales::comma) +
+#   ggtitle("Passengers by Month") +
+#   theme(plot.title = element_text(hjust = 0.5)) +
+#   theme(plot.title = element_text(face = "bold")) +
+#   xlab("Month") +
+#   ylab("Passenger Count")
+```
+
+```{r}
+# Highest Airport Activity by Month
+## Cleaning/Fixing Up
+planesTop10OriNum <- planes %>%
+  group_by(MONTH, ORIGIN) %>%
+  summarise(timesOri = n()) %>%
+  rename(AIRPORT = ORIGIN)
+
+planesTop10DestNum <- planes %>%
+  group_by(MONTH, DEST) %>%
+  summarise(timesDest = n()) %>%
+  rename(AIRPORT = DEST)
+
+planesTop10OriDest <- left_join(planesTop10OriNum, planesTop10DestNum, by = c("AIRPORT", "MONTH"))
+
+planesTop10OriDest <- planesTop10OriDest %>%
+  mutate(ACTIVITY = timesOri + timesDest)
+
+planesTop10 <- planesTop10OriDest %>%
+  group_by(AIRPORT) %>%
+  summarise(ACTIVITY = sum(ACTIVITY))
+
+Act <- arrange(planesTop10, desc(ACTIVITY))[1:10,1]
+
+planesTop10Act <- planes %>%
+  filter(ORIGIN %in% Act$AIRPORT) %>%
+  group_by(MONTH, ORIGIN) %>%
+  summarise(PASSENGERS = sum(PASSENGERS)) %>%
+  rename(AIRPORT = ORIGIN)
+
+Airline <- sort(table(planes$UNIQUE_CARRIER_NAME), decreasing = T)[1:10]
+
+planesTop10Airlines <- planes %>%
+  filter(UNIQUE_CARRIER_NAME %in% names(Airline)) %>%
+  group_by(MONTH, UNIQUE_CARRIER_NAME) %>%
+  summarise(PASSENGERS = sum(PASSENGERS)) %>%
+  rename(AIRLINE = UNIQUE_CARRIER_NAME)
+
+# new_labels <- c("1" = "January", "2" = "February", "3" = "March",
+#                 "4" = "April", "5" = "May", "6" = "June")
+```
+
+```{r}
+# Actual Visualization of Airport Activity (NOT USING)
+# ggplot(planesTop10Act) +
+#   geom_bar(stat = "identity", aes(x = reorder(AIRPORT, -ACTIVITY), y = ACTIVITY), fill = c("burlywood4")) +
+#   facet_grid(MONTH ~ .,
+#              labeller = labeller(MONTH = new_labels)) +
+#   ggtitle("Airport Activity by Month") +
+#   theme(plot.title = element_text(hjust = 0.5)) +
+#   theme(plot.title = element_text(face = "bold")) +
+#   xlab("Airport") +
+#   ylab("Number of Flights")
+```
+
+```{r}
+# FINAL VISUALIZATION, BY AIRPORT (CONNECTED DOT PLOT)
+ggplot(planesTop10Act, aes(x = MONTH, y = PASSENGERS/1000000, fill = reorder(AIRPORT, -PASSENGERS), color = reorder(AIRPORT, -PASSENGERS))) +
+  geom_line() +
+  geom_point(shape=21, color="black", size=3) +
+  xlab("Month") +
+  ylab("Number of Passengers (in Millions)") +
+  scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12),
+                     labels = c("January","February",
+                                "March","April","May","June",
+                                "July", "August", "September",
+                                "October", "November", "December")) +
+  ggtitle("Passengers per Month by Airport") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(plot.title = element_text(face = "bold")) +
+  theme(axis.text.x = element_text(angle=45, vjust = 0.5, size = 10)) +
+  labs(fill = "Airport", color = "Airport")
+```
+
+```{r}
+# FINAL VISUALIZATION, BY AIRLINE (CONNECTED DOT PLOT)
+ggplot(planesTop10Airlines, aes(x = MONTH, y = PASSENGERS/1000000, fill = reorder(AIRLINE, -PASSENGERS), color = reorder(AIRLINE, -PASSENGERS))) +
+  geom_line() +
+  geom_point(shape=21, color="black", size=3) +
+  xlab("Month") +
+  ylab("Number of Passengers (in Millions)") +
+  scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12),
+                     labels = c("January","February",
+                                "March","April","May","June",
+                                "July", "August", "September",
+                                "October", "November", "December")) +
+  ggtitle("Passengers per Month by Airline") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(plot.title = element_text(face = "bold")) +
+  theme(axis.text.x = element_text(angle=45, vjust = 0.5, size = 10)) +
+  labs(fill = "Airline", color = "Airline")
+```
