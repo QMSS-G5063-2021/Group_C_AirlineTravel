@@ -84,6 +84,14 @@ planesTop10Act <- planes %>%
   summarise(PASSENGERS = sum(PASSENGERS)) %>%
   rename(AIRPORT = ORIGIN)
 
+Airline <- sort(table(planes$UNIQUE_CARRIER_NAME), decreasing = T)[1:10]
+
+planesTop10Airlines <- planes %>%
+  filter(UNIQUE_CARRIER_NAME %in% names(Airline)) %>%
+  group_by(MONTH, UNIQUE_CARRIER_NAME) %>%
+  summarise(PASSENGERS = sum(PASSENGERS)) %>%
+  rename(AIRLINE = UNIQUE_CARRIER_NAME)
+
 # new_labels <- c("1" = "January", "2" = "February", "3" = "March",
 #                 "4" = "April", "5" = "May", "6" = "June")
 ```
@@ -102,7 +110,7 @@ planesTop10Act <- planes %>%
 ```
 
 ```{r}
-# FINAL VISUALIZATION (CONNECTED DOT PLOT)
+# FINAL VISUALIZATION, BY AIRPORT (CONNECTED DOT PLOT)
 ggplot(planesTop10Act, aes(x = MONTH, y = PASSENGERS, fill = AIRPORT, color = AIRPORT)) +
   geom_line() +
   geom_point(shape=21, color="black", size=3) +
@@ -113,6 +121,22 @@ ggplot(planesTop10Act, aes(x = MONTH, y = PASSENGERS, fill = AIRPORT, color = AI
                                 "March","April","May","June")) +
   scale_y_continuous(labels = scales::comma) +
   ggtitle("Passengers per Month by Airport") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(plot.title = element_text(face = "bold"))
+```
+
+```{r}
+# FINAL VISUALIZATION, BY AIRLINE (CONNECTED DOT PLOT)
+ggplot(planesTop10Airlines, aes(x = MONTH, y = PASSENGERS, fill = AIRLINE, color = AIRLINE)) +
+  geom_line() +
+  geom_point(shape=21, color="black", size=3) +
+  xlab("Month") +
+  ylab("Number of Passengers") +
+  scale_x_continuous(breaks = c(1,2,3,4,5,6),
+                     labels = c("January","February",
+                                "March","April","May","June")) +
+  scale_y_continuous(labels = scales::comma) +
+  ggtitle("Passengers per Month by Airline") +
   theme(plot.title = element_text(hjust = 0.5)) +
   theme(plot.title = element_text(face = "bold"))
 ```
