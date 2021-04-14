@@ -3,7 +3,7 @@ source('resources.R')
 
 ######################################## DEFINE UI ######################################## 
 
-ui6 <- fluidPage(
+ui7 <- fluidPage(
   theme = shinytheme("sandstone"),
   #theme = "bootstrap.min.css", # not sure how to get this to work...
   
@@ -77,6 +77,30 @@ ui6 <- fluidPage(
           mainPanel(
             plotOutput("hist2")
           )
+        ),
+        tabPanel(
+          "Cities",
+          sidebarPanel(
+            sliderInput("year", 
+                        label = "Year",
+                        min = min(years), 
+                        max = max(years), 
+                        step = 1,
+                        sep = "",
+                        value = range(years)
+            ),
+            selectInput("Origin_City", 
+                        label = "Origin City",
+                        choices = cities1
+            ),
+            selectInput("Destination_City",
+                        label = "Destination City",
+                        choices = cities2
+            )
+          ),
+          mainPanel(
+            plotOutput("yearCities", height = "500px")
+          )
         )
       )
     ),
@@ -86,9 +110,20 @@ ui6 <- fluidPage(
   )
 )
 
-######################################## DEFINE SERVER ######################################## 
+######################################## DEFINE UI ######################################## 
 
-server2 <- function(input, output) {
+server3 <- function(input, output) {
+  
+  citiesData <- reactive({
+    planes_all %>%
+      filter(ORIGIN_CITY_NAME == input$Origin_City) %>%
+      filter(DEST_CITY_NAME == input$Destination_City) %>%
+      filter(YEAR >= input$year[1]) %>%
+      filter(YEAR <= input$year[2]) %>%
+      group_by(MONTH) %>%
+      summarise(avg = mean(PASSENGERS))
+  })
+  
   data3 <- reactive({
     i <- match(input$Month1, month)
   })
@@ -97,29 +132,38 @@ server2 <- function(input, output) {
     paste0("Monthly Change in Domestic Air Traffic Routes in ", input$Month1," 2020")
   })
   
-  output$hist <- renderPlot({ # reactive function
-    ggplot(data(), aes(MONTH, totalP)) +
-      geom_col() +
-      theme(axis.text.x = element_text(angle = 40, vjust = .75))
+  data4 <- reactive({
+    i <- match(input$Month2, month)
   })
   
+  data5 <- reactive({
+    i <- match(input$Month3, month)
+  })
+  
+  output$maps2 <- renderVisNetwork({
+    network(data4(),data5(),min_corr1,4)
+  })
+  
+  output$maps3 <- renderVisNetwork({
+    network(1,6,min_corr1,4)
+  })
   output$hist2 <- renderPlot({
     ggplot(planesTop10Airlines, aes(x = MONTH, y = PASSENGERS/1000000, fill = reorder(AIRLINE, -PASSENGERS), color = reorder(AIRLINE, -PASSENGERS))) +
-    geom_line() +
-    geom_point(shape=21, color="black", size=3) +
-    xlab("Month") +
-    ylab("Number of Passengers (in Millions)") +
-    scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12),
-                       labels = c("January","February",
-                                  "March","April","May","June",
-                                  "July", "August", "September",
-                                  "October", "November", "December")) +
-    ggtitle("Passengers per Month by Airline") +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    theme(plot.title = element_text(face = "bold")) +
-    theme(axis.text.x = element_text(angle=45, vjust = 0.5, size = 10)) +
-    labs(fill = "Airline", color = "Airline")
-    })
+      geom_line() +
+      geom_point(shape=21, color="black", size=3) +
+      xlab("Month") +
+      ylab("Number of Passengers (in Millions)") +
+      scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12),
+                         labels = c("January","February",
+                                    "March","April","May","June",
+                                    "July", "August", "September",
+                                    "October", "November", "December")) +
+      ggtitle("Passengers per Month by Airline") +
+      theme(plot.title = element_text(hjust = 0.5)) +
+      theme(plot.title = element_text(face = "bold")) +
+      theme(axis.text.x = element_text(angle=45, vjust = 0.5, size = 10)) +
+      labs(fill = "Airline", color = "Airline")
+  })
   
   output$maps <- renderPlot({
     states_sf %>% 
@@ -140,26 +184,29 @@ server2 <- function(input, output) {
       theme(legend.position = "bottom")+
       #ggtitle(title())+
       labs(#subtitle="Growth rates are capped at -100% and 100%",
-           caption="Cities and routes are sized by traffic volume.")
+        caption="Cities and routes are sized by traffic volume.")
   })
   
-  data4 <- reactive({
-    i <- match(input$Month2, month)
-  })
-  
-  data5 <- reactive({
-    i <- match(input$Month3, month)
-  })
-  
-  output$maps2 <- renderVisNetwork({
-    network(data4(),data5(),min_corr1,4)
-  })
-  
-  output$maps3 <- renderVisNetwork({
-    network(1,6,min_corr1,4)
+  output$yearCities <- renderPlot({
+    citiesData() %>%
+      ggplot(aes(x = MONTH, y = avg)) +
+      geom_line() +
+      geom_point(shape=21, color="black", size=3) +
+      xlab("Month") +
+      ylab("Number of Passengers (in Millions)") +
+      scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12),
+                         labels = c("January","February",
+                                    "March","April","May","June",
+                                    "July", "August", "September",
+                                    "October", "November", "December")) +
+      ggtitle("Passengers per Month by Airline") +
+      theme(plot.title = element_text(hjust = 0.5)) +
+      theme(plot.title = element_text(face = "bold")) +
+      theme(axis.text.x = element_text(angle=45, vjust = 0.5, size = 10)) +
+      labs(fill = "Airline", color = "Airline")
+    
   })
   
 }
 
-
-shinyApp(ui = ui6, server = server2)
+shinyApp(ui = ui7, server = server3)
