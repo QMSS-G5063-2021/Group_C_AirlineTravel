@@ -92,10 +92,10 @@ network <- function(start=1,end=6,min_corr=0.9995, min_importance=6, min_pop=1e6
 }
 min_corr1 <- .999
 
-cities1 <- c("New York, NY","Atlanta, GA", "Chicago, IL", "Dallas/Fort Worth, TX", "Denver, CO", "Los Angeles, CA", 
+cities1 <- c("All", "New York, NY","Atlanta, GA", "Chicago, IL", "Dallas/Fort Worth, TX", "Denver, CO", "Los Angeles, CA", 
              "Houston, TX", "Las Vegas, NV", "Phoenix, AZ", "Charlotte, NC")
 
-cities2 <- c("Los Angeles, CA", "Atlanta, GA", "Chicago, IL", "Dallas/Fort Worth, TX", "Denver, CO", "New York, NY",
+cities2 <- c("All", "Los Angeles, CA", "Atlanta, GA", "Chicago, IL", "Dallas/Fort Worth, TX", "Denver, CO", "New York, NY",
              "Houston, TX", "Las Vegas, NV", "Phoenix, AZ", "Charlotte, NC")
 
 years <- c(2015, 2016, 2017, 2018, 2019, 2020)
