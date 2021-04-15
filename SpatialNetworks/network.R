@@ -17,7 +17,7 @@ library(magick)
 library(igraph)
 
 register_google(key = Sys.getenv('GOOGLE_API'))
-
+setwd("C:/Users/jm445/Documents/")
 # Read monthly csv files and focus on non-zero passengers flight
 df <- data.frame()
 for (file in list.files(path = 'DOT',
@@ -225,29 +225,32 @@ month <- c("January","February","March","April","May","June")
 month_abb <- c("JAN","FEB","MAR","APR","MAY","JUN")
 
 for (i in 1:6){
-  
+  for(j in c("Short-Distance Flights","Low-Mid Distance Flights","High-Mid Distance Flights","Long-Distance Flights")){
 title <- paste0("Monthly Change in Domestic Air Traffic Routes in ",month[i]," 2020")
 graph <- states_sf %>% 
   ggplot(aes()) +
-  geom_sf(fill = "black", color = "#ffffff")+
+  geom_sf(fill = "grey36", color = "black")+
   geom_sf(data=activate(net_perc,"edges") %>% st_as_sf() %>%
-            select(from,to,importance,local,MONTH,value)%>% filter(MONTH==i) %>%arrange(desc(value)),
-          aes(color=value,alpha=importance,size=importance/4)) +
+            select(from,to,importance,local,MONTH,value)%>% filter(MONTH==i) %>%
+            filter(local==j) %>%
+            arrange(desc(value)),
+          aes(color=value,alpha=importance,size=importance/3)) +
   geom_sf(data=activate(net_perc,"nodes") %>% st_as_sf(),
-          aes(size=ifelse(importance>=6,importance/4,0.15)+.1),colour="black")+
+          aes(size=ifelse(importance>=6,(importance/4) + .4,0.2)),colour="black")+
   geom_sf(data=activate(net_perc,"nodes") %>% st_as_sf(),
           aes(size=ifelse(importance>=6,importance/4,0.15)),colour="white")+
-  scale_colour_viridis_c("% Change in Monthly Passenger Volume",option = 'plasma', direction=-1, limits=c(-100,100)) +
+  scale_color_gradient2(low="red",mid="white",high="blue",midpoint=0,limits=c(-100,100))+
+ # scale_colour_viridis_c("% Change in Monthly Passenger Volume",option = 'plasma', direction=-1, limits=c(-100,100)) +
   scale_size_continuous(range = c(0.25,2))+
   guides(alpha=F, size=F)+
-  facet_wrap(~local, nrow=2)+
+ # facet_wrap(~local, nrow=2)+
   theme_map()+
   theme(legend.position = "bottom")+
   ggtitle(title)+
-  labs(subtitle="Growth rates are capped at -100% and 100%",
-       caption="Cities and routes are sized by traffic volume.")
+  labs(caption="Cities and routes are sized by traffic volume. \n Growth rates are capped at -100% and 100%.")
 
-ggsave(paste0(month[i],"_4.png"), graph, width = 12, height = 6, dpi = 1000)
+ggsave(paste0(j,"_",month[i],"_.png"), graph, width = 12, height = 6, dpi = 1000)
+  }
 }
 
 
@@ -404,18 +407,20 @@ network <- function(start=1,end=6,min_corr=0.9995, min_importance=6, min_pop=1e6
 
   colors <- tibble(importance = 1:8, color = c("pink","purple","blue","aquamarine","green","#e6e600","orange","red")) %>% filter(importance >= upd_min_importance)
 
-  nodes_sig <-  labels %>% left_join(cities_matrix,by="label") %>% left_join(colors,by="importance") %>% select(id,label,importance, color) 
+  nodes_sig <-  labels %>% left_join(cities_matrix,by="label") %>% left_join(colors,by="importance") %>% select(id,label,importance, color) %>%
+    mutate(title=label)
 
 
   nodes_unique <-  data.frame(label = as.character(1:8),
-                            shape = c( "circle"), color = c("pink","purple","blue","aquamarine","green","#e6e600","orange","red"), City = 1:8, size=10) %>%
-  filter(City >= upd_min_importance) 
-  nodes_unique$label <- (8-upd_min_importance+1):1
-  nodes_unique <- nodes_unique %>% arrange(label)
+                            shape = c( "circle"), color = c("pink","purple","blue","aquamarine","green","#e6e600","orange","red"), City = 1:8, size=50) %>%
+  filter(City >= upd_min_importance)  %>%
+    mutate(label = (8-upd_min_importance+1):1) %>%
+    arrange(label) %>%
+    mutate(label = paste0("Air Volume Level: ",label))
 
   new_g <- graph_from_data_frame(d=only_sig,vertices=nodes_sig,directed= F)
 
-  graph <- visNetwork(nodes_sig, only_sig,main="Patterns of Monthly Changes in Airline Passenger Volume of Top Airport Cities",
+  graph <- visNetwork(nodes_sig, only_sig,main="Patterns of Monthly Changes in Air Passengers across Top Airport Cities",
                     submain=list(text=paste0("Network constructed based on high correlations of monthly changes in air traffic of cities from ",
                                              month[start]," to ",month[end]," 2020.")),
                     footer = list(text=paste0("Only includes cities with a minimum 2020 air passenger traffic volume of: ", min_pop))) %>% 
@@ -423,7 +428,10 @@ network <- function(start=1,end=6,min_corr=0.9995, min_importance=6, min_pop=1e6
   visEdges(arrows = "middle") %>%
   addFontAwesome() %>%
   visNodes(color=list(border="black")) %>%
-  visLegend(main ="Airport City Traffic Volume Level",addNodes=nodes_unique,useGroups = F,ncol=2) %>%
+  visLegend(
+    #main =list(text="City Air Traffic Level",
+     #                  style='font-family:Georgia;font-weight:bold;font-size:20px;text-align:center;'),
+                       addNodes=nodes_unique,useGroups = F,ncol=1, position ="left",stepY = 150, zoom=F) %>%
   visOptions(highlightNearest = list(enabled = T, hover = T), nodesIdSelection = list(main="Select by city"))
 
   #visExport(graph,type="html",name=paste0("network_cities_",month[start],"_",month[end],".html"))
