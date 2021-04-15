@@ -225,16 +225,16 @@ month <- c("January","February","March","April","May","June")
 month_abb <- c("JAN","FEB","MAR","APR","MAY","JUN")
 
 for (i in 1:6){
-  for(j in c("Short-Distance Flights","Low-Mid Distance Flights","High-Mid Distance Flights","Long-Distance Flights")){
+ # for(j in c("Short-Distance Flights","Low-Mid Distance Flights","High-Mid Distance Flights","Long-Distance Flights")){
 title <- paste0("Monthly Change in Domestic Air Traffic Routes in ",month[i]," 2020")
 graph <- states_sf %>% 
   ggplot(aes()) +
   geom_sf(fill = "grey36", color = "black")+
   geom_sf(data=activate(net_perc,"edges") %>% st_as_sf() %>%
             select(from,to,importance,local,MONTH,value)%>% filter(MONTH==i) %>%
-            filter(local==j) %>%
+ #           filter(local==j) %>%
             arrange(desc(value)),
-          aes(color=value,alpha=importance,size=importance/3)) +
+          aes(color=value,alpha=importance,size=importance/8)) +
   geom_sf(data=activate(net_perc,"nodes") %>% st_as_sf(),
           aes(size=ifelse(importance>=6,(importance/4) + .4,0.2)),colour="black")+
   geom_sf(data=activate(net_perc,"nodes") %>% st_as_sf(),
@@ -243,14 +243,14 @@ graph <- states_sf %>%
  # scale_colour_viridis_c("% Change in Monthly Passenger Volume",option = 'plasma', direction=-1, limits=c(-100,100)) +
   scale_size_continuous(range = c(0.25,2))+
   guides(alpha=F, size=F)+
- # facet_wrap(~local, nrow=2)+
+  facet_wrap(~local, nrow=2)+
   theme_map()+
   theme(legend.position = "bottom")+
   ggtitle(title)+
   labs(caption="Cities and routes are sized by traffic volume. \n Growth rates are capped at -100% and 100%.")
 
-ggsave(paste0(j,"_",month[i],"_.png"), graph, width = 12, height = 6, dpi = 1000)
-  }
+ggsave(paste0(month[i],"_.png"), graph, width = 12, height = 6, dpi = 1000)
+  #}
 }
 
 
