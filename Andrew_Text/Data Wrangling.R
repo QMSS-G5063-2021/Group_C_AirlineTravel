@@ -6,6 +6,7 @@ library(igraph)
 library(tidygraph)
 
 ### Reading in Data
+setwd("~/dataviz2021/Group_Project/Andrew_Text/Main")
 a2021 <- read_csv("airline2021.csv")
 df <- a2021 %>%
   select(status_id,created_at,text,
@@ -36,12 +37,12 @@ clean <- check %>%
   select(status_id,created_at,text,
          mentions_screen_name,location,retweet_count) %>%
   rename(airline = mentions_screen_name) %>%
-  mutate(airline = case_when(airline == "alaskaair" ~ "AlaskaAir",
+  mutate(airline = case_when(airline == "alaskaair" ~ "Alaska",
                              airline %in% c("americanair","americanairlines",
                                             "americanairlnes") ~
-                               "AmericanAir",
-                             airline %in% c("delta", "deltaairline") ~ "DeltaAir",
-                             airline == "southwestair" ~ "SouthwestAir",
+                               "American",
+                             airline %in% c("delta", "deltaairline") ~ "Delta",
+                             airline == "southwestair" ~ "Southwest",
                              airline == "united" ~ "United")) %>%
   ungroup()
 
