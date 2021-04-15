@@ -185,26 +185,3 @@ ui2 <- fluidPage(
   # have to figure out if you can select multiple
 
 
-
-tabPanel(
-  "Interactive Networks", fluid = TRUE,
-  fluidRow(
-    column(12,
-           visNetworkOutput("maps2"),
-           fluidRow(
-             column(6, align = "center",
-                    selectInput(inputId = "Month2",
-                                label = "Choose Starting Month",
-                                choices = startingMonth)
-                    ),
-             column(6, align = "center",
-                    selectInput(inputId = "Month3",
-                                label = "Choose Ending Month",
-                                choices = endingMonth)
-                    )
-             )
-           )
-    )
-  )
-
-

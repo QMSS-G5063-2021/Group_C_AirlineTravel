@@ -15,6 +15,7 @@ library(transformr)
 library(ggthemes)
 library(visNetwork)
 library(magick)
+library(highcharter)
 
 ##########################################################
 
@@ -25,6 +26,7 @@ load("www/states_sf.RData")
 load("www/net_perc.RData")
 load("www/df_wider3.RData")
 load("www/df_wider4.RData")
+load("www/planes_all.RData")
 
 #states <- unique(planes$ORIGIN_STATE_NM)
 #states <- sort(states)
@@ -73,9 +75,9 @@ network <- function(start=1,end=6,min_corr=0.9995, min_importance=6, min_pop=1e6
   new_g <- graph_from_data_frame(d=only_sig,vertices=nodes_sig,directed= F)
   
   graph <- visNetwork(nodes_sig, only_sig) %>% #main="Patterns of Monthly Changes in Airline Passenger Volume of Top Airport Cities",
-                      #submain=list(text=paste0("Network constructed based on high correlations of monthly changes in air traffic of cities from ",
-                                               #month[start]," to ",month[end]," 2020."))) %>% #,
-                      #footer = list(text=paste0("Only includes cities with a minimum 2020 air passenger traffic volume of: ", min_pop))) %>% 
+    #submain=list(text=paste0("Network constructed based on high correlations of monthly changes in air traffic of cities from ",
+    #month[start]," to ",month[end]," 2020."))) %>% #,
+    #footer = list(text=paste0("Only includes cities with a minimum 2020 air passenger traffic volume of: ", min_pop))) %>% 
     visIgraphLayout(layout = "layout_nicely",smooth=T,randomSeed=10) %>% 
     visEdges(arrows = "middle") %>%
     addFontAwesome() %>%
@@ -90,9 +92,16 @@ network <- function(start=1,end=6,min_corr=0.9995, min_importance=6, min_pop=1e6
 }
 min_corr1 <- .999
 
+cities1 <- c("All", "New York, NY","Atlanta, GA", "Chicago, IL", "Dallas/Fort Worth, TX", "Denver, CO", "Los Angeles, CA", 
+             "Houston, TX", "Las Vegas, NV", "Phoenix, AZ", "Charlotte, NC")
+
+cities2 <- c("All", "Los Angeles, CA", "Atlanta, GA", "Chicago, IL", "Dallas/Fort Worth, TX", "Denver, CO", "New York, NY",
+             "Houston, TX", "Las Vegas, NV", "Phoenix, AZ", "Charlotte, NC")
+
+years <- c(2015, 2016, 2017, 2018, 2019, 2020)
 
 ###############################################################################
 
 
 #data <- read.csv( switch(company,"apple" = "appledata.csv","yahoo" = "yahoo_data.csv"))
-  # convenient shortening of an if statement that chooses its value according to the value of another var
+# convenient shortening of an if statement that chooses its value according to the value of another var
