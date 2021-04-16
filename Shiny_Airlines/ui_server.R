@@ -4,7 +4,7 @@ source('resources.R')
 ######################################## DEFINE UI ######################################## 
 
 ui7 <- fluidPage(
-  theme = shinytheme("sandstone"),
+  theme = shinytheme("united"),
   #theme = "bootstrap.min.css", # not sure how to get this to work...
   
   navbarPage(
@@ -114,7 +114,32 @@ ui7 <- fluidPage(
     ),
     
     # Text Analysis -------------------------------------------------------------------------------------------
-    tabPanel("Text")
+    tabPanel(
+      "Text",
+      tabsetPanel(
+        type = "tabs",
+        tabPanel(
+          "Airline Twitter Sentiment",
+          fluidRow(
+            column(12, align = "center",
+                   h4("Airline Tweets' Sentiment Value Distribution"),
+                   plotOutput("sent1"),
+                   p("Explanation paragraph if we want to include it ;adksjf;afdjk")
+                   )
+            )
+          ),
+        tabPanel(
+          "Frequent Words",
+          fluidRow(
+            column(12, align = "center",
+                   h4("Sentiment Value Weighted by Frequency of Words in Tweets"),
+                   plotOutput("sent2"),
+                   p("Explanation paragraph if we want to include it ;asdkjf ;alkdfj")
+                   )
+            )
+          )
+        )
+      )
   )
 )
 
@@ -174,9 +199,6 @@ server3 <- function(input, output) {
     network(data4(),data5(),min_corr1,4)
   })
   
-  output$maps3 <- renderVisNetwork({
-    network(1,6,min_corr1,4)
-  })
   output$hist2 <- renderPlot({
     ggplot(planesTop10Airlines, aes(x = MONTH, y = PASSENGERS/1000000, fill = reorder(AIRLINE, -PASSENGERS), color = reorder(AIRLINE, -PASSENGERS))) +
       geom_line() +
@@ -197,15 +219,16 @@ server3 <- function(input, output) {
   output$maps <- renderPlot({
     states_sf %>% 
       ggplot(aes()) +
-      geom_sf(fill = "black", color = "#ffffff")+
+      geom_sf(fill = "grey36", color = "black")+
       geom_sf(data=activate(net_perc,"edges") %>% st_as_sf() %>%
                 select(from,to,importance,local,MONTH,value)%>% filter(MONTH==data3()) %>%arrange(desc(value)),
-              aes(color=value,alpha=importance,size=importance/4)) +
+              aes(color=value,alpha=importance,size=importance/8)) +
       geom_sf(data=activate(net_perc,"nodes") %>% st_as_sf(),
-              aes(size=ifelse(importance>=6,importance/4,0.15)+.1),colour="black")+
+              aes(size=ifelse(importance>=6,(importance/4) + .4,0.2)),colour="black")+
       geom_sf(data=activate(net_perc,"nodes") %>% st_as_sf(),
               aes(size=ifelse(importance>=6,importance/4,0.15)),colour="white")+
-      scale_colour_viridis_c("% Change in Monthly Passenger Volume",option = 'plasma', direction=-1, limits=c(-100,100)) +
+      scale_color_gradient2(low="red",mid="white",high="blue",midpoint=0,limits=c(-100,100))+
+      #scale_colour_viridis_c("% Change in Monthly Passenger Volume",option = 'plasma', direction=-1, limits=c(-100,100)) +
       scale_size_continuous(range = c(0.25,2))+
       guides(alpha=F, size=F)+
       facet_wrap(~local, nrow=2)+
@@ -233,6 +256,53 @@ server3 <- function(input, output) {
       theme(axis.text.x = element_text(angle=45, vjust = 0.5, size = 10))
   })
   
+  output$sent1 <- renderPlot({
+    ggplot(valence, aes(x = airline, y = value, color = airline)) + 
+      geom_violin( show.legend = FALSE) + 
+      geom_boxplot(width=.1) +
+      scale_y_continuous(breaks = seq(-5, 5, by = 1)) +
+      labs(x = "Airlines", y = "AFINN Values") +
+      #ggtitle("Tweets Sentiment Value Distribution By Airlines") +
+      theme(plot.title = element_text(vjust=2, hjust = 0.5),
+            legend.position =  'none')
+  })
+  
+  output$sent2 <- renderPlot({
+    valence %>%
+      mutate(contribution = n * value) %>%
+      group_by(airline) %>%
+      slice_head(n = 5) %>%
+      arrange(((contribution))) %>%
+      mutate(word = reorder(word, contribution)) %>%
+      ggplot(aes(x = contribution, y = reorder(word, contribution), 
+                 fill = contribution > 0)) +
+      geom_col(show.legend = FALSE) +
+      facet_wrap(~airline, ncol = 2, scales = "free") +
+      labs(x = "Sentiment Value * Number of Appearances",
+           y = 'Top 5 Words From Tweets') +
+      #ggtitle("Sentiment Value Weighted by Frequency of Words in Tweets") +
+      theme(plot.title = element_text(vjust=2, hjust = 0.5),
+            axis.title.x = element_text(vjust = -1),
+            axis.title.y = element_text(vjust = 1),
+            legend.position =  'none')
+  })
+  
+  output$emo <- renderPlot({
+   emotion_plot <- nrc_graph  %>%
+      group_by(airline, sentiment) %>%
+      summarise(Freq=n(), .groups = 'drop') %>%
+      ggplot(aes(Freq, reorder(sentiment, Freq), fill = airline)) +
+      geom_col(show.legend = TRUE) +
+      labs(x = "Frequency",
+           y = 'Emotion Category',
+           fill = "Airline") +
+      ggtitle("Emotion Category by Frequency of Words in Tweets") +
+      theme(plot.title = element_text(vjust=2, hjust = 0.5),
+            axis.title.x = element_text(vjust = -1),
+            axis.title.y = element_text(vjust = 1))
+    #emotion_plot <- ggplotly(emotion_plot, tooltip = c("x"))
+    emotion_plot
+  })
 }
 
 shinyApp(ui = ui7, server = server3)

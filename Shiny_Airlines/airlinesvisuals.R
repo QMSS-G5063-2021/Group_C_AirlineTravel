@@ -184,4 +184,3 @@ ui2 <- fluidPage(
 # for Ian's airlines, can make it reacitve using filter(c(input$airlines)) (?)
   # have to figure out if you can select multiple
 
-
