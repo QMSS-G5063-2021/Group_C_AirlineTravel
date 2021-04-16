@@ -224,7 +224,7 @@ par(mfrow=c(6,2))
 month <- c("January","February","March","April","May","June")
 month_abb <- c("JAN","FEB","MAR","APR","MAY","JUN")
 
-for (i in 1:6){
+for (i in 4:6){
  # for(j in c("Short-Distance Flights","Low-Mid Distance Flights","High-Mid Distance Flights","Long-Distance Flights")){
 title <- paste0("Monthly Change in Domestic Air Traffic Routes in ",month[i]," 2020")
 graph <- states_sf %>% 
@@ -387,8 +387,9 @@ network <- function(start=1,end=6,min_corr=0.9995, min_importance=6, min_pop=1e6
                                    col_character(),
                                    col_number(),
                                    col_number()))
+  states <- read_csv("DOT/us_states.csv") %>% select(-State)
 
-  nodes <- nodes %>% filter(nodes$label %in% df_wider3$ORIGIN_CITY_NAME | nodes$label %in% df_wider3$DEST_CITY_NAME) %>%
+  snodes <- nodes %>% filter(nodes$label %in% df_wider3$ORIGIN_CITY_NAME | nodes$label %in% df_wider3$DEST_CITY_NAME) %>%
   mutate(id = 1:n())
 
   nodes1 <- nodes %>% left_join(df_wider4,by=c("label"="City"))
@@ -405,14 +406,16 @@ network <- function(start=1,end=6,min_corr=0.9995, min_importance=6, min_pop=1e6
 
   dim(only_sig)
 
-  colors <- tibble(importance = 1:8, color = c("pink","purple","blue","aquamarine","green","#e6e600","orange","red")) %>% filter(importance >= upd_min_importance)
+  colors <- tibble(importance = 1:8, color = c("pink","purple","aquamarine","green","#e6e600","peru","silver","gold")) %>% filter(importance >= upd_min_importance)
 
   nodes_sig <-  labels %>% left_join(cities_matrix,by="label") %>% left_join(colors,by="importance") %>% select(id,label,importance, color) %>%
-    mutate(title=label)
+    mutate(title=label) %>%
+    mutate(state = unlist(str_extract_all(unlist(str_extract_all(nodes_sig$label,", [A-Z]+")),"[A-Z]+"))) %>%
+    left_join(states,by=c("state"="State Code"))
 
 
   nodes_unique <-  data.frame(label = as.character(1:8),
-                            shape = c( "circle"), color = c("pink","purple","blue","aquamarine","green","#e6e600","orange","red"), City = 1:8, size=50) %>%
+                            shape = c( "circle"), color = c("pink","purple","aquamarine","green","#e6e600","peru","silver","gold"), City = 1:8, size=50) %>%
   filter(City >= upd_min_importance)  %>%
     mutate(label = (8-upd_min_importance+1):1) %>%
     arrange(label) %>%
@@ -428,14 +431,9 @@ network <- function(start=1,end=6,min_corr=0.9995, min_importance=6, min_pop=1e6
   visEdges(arrows = "middle") %>%
   addFontAwesome() %>%
   visNodes(color=list(border="black")) %>%
-  visLegend(
-    #main =list(text="City Air Traffic Level",
-     #                  style='font-family:Georgia;font-weight:bold;font-size:20px;text-align:center;'),
-                       addNodes=nodes_unique,useGroups = F,ncol=1, position ="left",stepY = 150, zoom=F) %>%
-  visOptions(highlightNearest = list(enabled = T, hover = T), nodesIdSelection = list(main="Select by city"))
-
-  #visExport(graph,type="html",name=paste0("network_cities_",month[start],"_",month[end],".html"))
-  
+  visLegend(addNodes=nodes_unique,useGroups = F,ncol=1, position ="left",stepY = 150, zoom=F) %>%
+  visOptions(highlightNearest = list(enabled = T, hover = T), 
+             selectedBy="Division")
   return(graph)
   
 }
