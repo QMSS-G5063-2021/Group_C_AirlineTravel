@@ -43,6 +43,7 @@ network <- function(start=1,end=6,min_corr=0.9995, min_importance=6, min_pop=1e6
                                      col_character(),
                                      col_number(),
                                      col_number()))
+  states <- read_csv("us_states.csv") %>% select(-State)
   
   nodes <- nodes %>% filter(nodes$label %in% df_wider3$ORIGIN_CITY_NAME | nodes$label %in% df_wider3$DEST_CITY_NAME) %>%
     mutate(id = 1:n())
@@ -61,14 +62,16 @@ network <- function(start=1,end=6,min_corr=0.9995, min_importance=6, min_pop=1e6
   
   dim(only_sig)
   
-  colors <- tibble(importance = 1:8, color = c("pink","purple","blue","aquamarine","green","#e6e600","orange","red")) %>% filter(importance >= upd_min_importance)
+  colors <- tibble(importance = 1:8, color = c("pink","purple","aquamarine","green","#8f99fb","peru","silver","gold")) %>% filter(importance >= upd_min_importance)
   
   nodes_sig <-  labels %>% left_join(cities_matrix,by="label") %>% left_join(colors,by="importance") %>% select(id,label,importance, color) %>%
-    mutate(title=label)
+    mutate(title=label) %>%
+    mutate(state = unlist(str_extract_all(unlist(str_extract_all(label,", [A-Z]+")),"[A-Z]+"))) %>%
+    left_join(states,by=c("state"="State Code"))
   
   
   nodes_unique <-  data.frame(label = as.character(1:8),
-                              shape = c( "circle"), color = c("pink","purple","blue","aquamarine","green","#e6e600","orange","red"), City = 1:8, size=50) %>%
+                              shape = c( "circle"), color = c("pink","purple","aquamarine","green","#8f99fb","peru","silver","gold"), City = 1:8, size=50) %>%
     filter(City >= upd_min_importance)  %>%
     mutate(label = (8-upd_min_importance+1):1) %>%
     arrange(label) %>%
@@ -76,25 +79,21 @@ network <- function(start=1,end=6,min_corr=0.9995, min_importance=6, min_pop=1e6
   
   new_g <- graph_from_data_frame(d=only_sig,vertices=nodes_sig,directed= F)
   
-  graph <- visNetwork(nodes_sig, only_sig) %>%# ,main="Patterns of Monthly Changes in Air Passengers across Top Airport Cities",
-    #submain=list(text=paste0("Network constructed based on high correlations of monthly changes in air traffic of cities from ",
-    #month[start]," to ",month[end]," 2020.")),
-    #footer = list(text=paste0("Only includes cities with a minimum 2020 air passenger traffic volume of: ", min_pop))) %>% 
+  graph <- visNetwork(nodes_sig, only_sig,main="Patterns of Monthly Changes in Air Passengers across Top Airport Cities",
+                      submain=list(text=paste0("Network constructed based on high correlations of monthly changes in air traffic of cities from ",
+                                               month[start]," to ",month[end]," 2020.")),
+                      footer = list(text=paste0("Only includes cities with a minimum 2020 air passenger traffic volume of: ", min_pop))) %>% 
     visIgraphLayout(layout = "layout_nicely",smooth=T,randomSeed=10) %>% 
     visEdges(arrows = "middle") %>%
     addFontAwesome() %>%
     visNodes(color=list(border="black")) %>%
-    visLegend(
-      #main =list(text="City Air Traffic Level",
-      #                  style='font-family:Georgia;font-weight:bold;font-size:20px;text-align:center;'),
-      addNodes=nodes_unique,useGroups = F,ncol=1, position ="left",stepY = 150, zoom=F) %>%
-    visOptions(highlightNearest = list(enabled = T, hover = T), nodesIdSelection = list(main="Select by city"))
-  
-  #visExport(graph,type="html",name=paste0("network_cities_",month[start],"_",month[end],".html"))
-  
+    visLegend(addNodes=nodes_unique,useGroups = F,ncol=1, position ="left",stepY = 150, zoom=F) %>%
+    visOptions(highlightNearest = list(enabled = T, hover = T), 
+               selectedBy="Division")
   return(graph)
   
 }
+
 min_corr1 <- .999
 
 cities1 <- c("All", "New York, NY","Atlanta, GA", "Chicago, IL", "Dallas/Fort Worth, TX", "Denver, CO", "Los Angeles, CA", 
