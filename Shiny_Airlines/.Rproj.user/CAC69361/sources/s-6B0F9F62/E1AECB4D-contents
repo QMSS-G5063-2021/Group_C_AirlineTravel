@@ -4,6 +4,6 @@ Public repo for Group C consisting of Andrew Lai (ael2193@columbia.edu), Ian Lig
 
 Shiny: https://charlie-levitz.shinyapps.io/shiny_airlines/
 
-Process Book: Process%20Book.pdf
+Process Book: https://github.com/QMSS-G5063-2021/Group_C_AirlineTravel/blob/main/Process%20Book.pdf
 
 Video Presentation: 
