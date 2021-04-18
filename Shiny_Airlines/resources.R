@@ -17,6 +17,7 @@ library(visNetwork)
 library(magick)
 library(tidytext)
 library(plotly)
+library(rsconnect)
 
 ##########################################################
 
@@ -79,10 +80,10 @@ network <- function(start=1,end=6,min_corr=0.9995, min_importance=6, min_pop=1e6
   
   new_g <- graph_from_data_frame(d=only_sig,vertices=nodes_sig,directed= F)
   
-  graph <- visNetwork(nodes_sig, only_sig,main="Patterns of Monthly Changes in Air Passengers across Top Airport Cities",
-                      submain=list(text=paste0("Network constructed based on high correlations of monthly changes in air traffic of cities from ",
-                                               month[start]," to ",month[end]," 2020.")),
-                      footer = list(text=paste0("Only includes cities with a minimum 2020 air passenger traffic volume of: ", min_pop))) %>% 
+  graph <- visNetwork(nodes_sig, only_sig) %>% #main="Patterns of Monthly Changes in Air Passengers across Top Airport Cities",
+                      #submain=list(text=paste0("Network constructed based on high correlations of monthly changes in air traffic of cities from ",
+                                               #month[start]," to ",month[end]," 2020."))) %>%
+                      #footer = list(text=paste0("Only includes cities with a minimum 2020 air passenger traffic volume of: ", min_pop))) %>% 
     visIgraphLayout(layout = "layout_nicely",smooth=T,randomSeed=10) %>% 
     visEdges(arrows = "middle") %>%
     addFontAwesome() %>%

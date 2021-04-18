@@ -4,7 +4,7 @@ source('resources.R')
 ######################################## DEFINE UI ######################################## 
 
 ui7 <- fluidPage(
-  theme = shinytheme("united"),
+  theme = shinytheme("cerulean"),
   #theme = "bootstrap.min.css", # not sure how to get this to work...
   
   navbarPage(
@@ -16,7 +16,53 @@ ui7 <- fluidPage(
       "About",
       mainPanel(
         h4("by Andrew Lai, Ian Lightfoot, Charlie Levitz, Jason Mares"),
-        p("We sought to explore how air traffic and the airline industry was impacted by the coronavirus...")
+        p("We sought to explore how air traffic and the airline industry was impacted by the coronavirus. To what extent did Americans stop flying during the spring of 2020? And how does this impact people's perception of the airlines and flying in the United States?"
+          )
+      )
+    ),
+    
+    # Static Graphs -------------------------------------------------------------------------------------------
+    tabPanel(
+      "Static",
+      tabsetPanel(
+        type = "tabs",
+        tabPanel(
+          "Flights", fluid = TRUE,
+          fluidRow(
+            column(12, align = "center",
+                   h4("Passengers Per Month by Airline"),
+                   plotOutput("hist2"),
+                   p("In March of 2020, Americans stopped flying as frequently as they had been in previous months. And in April, they stopped flying altogether. We see this effect independent of any specific airline. On the next tab, you may explore how this effect changes depending on the origin and destination cities. Notice how the pattern of total monthly passengers changes from month to month before the pandemic, and how the pandemic impacts how we view flight frequency over the last half-decade.")
+            )
+          )
+        ),
+        tabPanel(
+          "Cities",
+          sidebarPanel(
+            sliderInput("year", 
+                        label = "Year",
+                        min = min(years), 
+                        max = max(years), 
+                        step = 1,
+                        sep = "",
+                        value = range(years)
+            ),
+            selectInput("Origin_City", 
+                        label = "Origin City",
+                        choices = cities1
+            ),
+            selectInput("Destination_City",
+                        label = "Destination City",
+                        choices = cities2
+            ),
+            p("This graph displays the average passengers per month, and how that average changes depending on which years you are averaging. Pay special attention to the month of April when the year of 2020 is or is not included. And try manipulating the origin and destination cities to see how this effect may differ depending on the airport!"
+              )
+          ),
+          mainPanel(
+            h4("Number of Passenger by Month Between Destinations"),
+            plotOutput("yearCities", height = "500px")
+          )
+        )
       )
     ),
     
@@ -39,8 +85,9 @@ ui7 <- fluidPage(
           ),
           fluidRow(
             column(12, align = "center",
-                   p("This is text explaining the network to the left lets see how this will look if I type a lot of text I hope this doesn't look really bad i guess i'll find out soon aldkfja;dsf  askdfj ;askfd j askdf ja;lkfdj"
-                   )
+                   p("The graphs above show the month-to-month change in passenger traffic along domestic routes throughout the continental United States. Maps are separated by the distances of the routes for the readability of the viewer but also to observe whether routes of different lengths were affected the same by the pandemic. Shorter flights may be viewed as safer since passengers do not spend as much time isolated in a cylindrical contained. In addition, long-distance flights are often taken by business passengers thus the changes in passenger traffic along these of flights may be correlated with the decline in employment seen in the U.S. during the first quarter of 2020. "
+                     ),
+                   p("After the holiday season in December 2019, air traffic volume rebounded to average levels throughout the country. Although the news of coronavirus reached Americans in early 2020, air traffic volume was not terribly impacted. In fact, the monthly changes in air passengers throughout domestic routes from January and February varied throughout the country, with travel decreasing from the end of the holiday season in January. However, March and April saw heavy hits in air traffic due to the nation-wide shutdown of businesses, schools, etc. May and June saw immediate recovery in most places as restrictions were slightly loosened in certain areas of the country. The opening of the country was attributed to shutdown weariness and anxiousness to spend time outside with summer beginning.")
             )
           )
         ),
@@ -70,49 +117,6 @@ ui7 <- fluidPage(
       )
     ),
     
-    # Static Graphs -------------------------------------------------------------------------------------------
-    tabPanel(
-      "Static",
-      tabsetPanel(
-        type = "tabs",
-        tabPanel(
-          "Flights", fluid = TRUE,
-          fluidRow(
-            column(12, align = "center",
-                   h4("Passengers Per Month by Airline"),
-                   plotOutput("hist2"),
-                   p("This is test text where we will talk about a decrease in the number of passengers across all American airlines yada yada yada a;kdfj;asjkdf")
-                   )
-            )
-          ),
-        tabPanel(
-          "Cities",
-          sidebarPanel(
-            sliderInput("year", 
-                        label = "Year",
-                        min = min(years), 
-                        max = max(years), 
-                        step = 1,
-                        sep = "",
-                        value = range(years)
-            ),
-            selectInput("Origin_City", 
-                        label = "Origin City",
-                        choices = cities1
-            ),
-            selectInput("Destination_City",
-                        label = "Destination City",
-                        choices = cities2
-            )
-          ),
-          mainPanel(
-            h4("Number of Passenger by Month Between Destinations"),
-            plotOutput("yearCities", height = "500px")
-          )
-        )
-      )
-    ),
-    
     # Text Analysis -------------------------------------------------------------------------------------------
     tabPanel(
       "Text",
@@ -124,7 +128,8 @@ ui7 <- fluidPage(
             column(12, align = "center",
                    h4("Airline Tweets' Sentiment Value Distribution"),
                    plotOutput("sent1"),
-                   p("Explanation paragraph if we want to include it ;adksjf;afdjk")
+                   p("To first understand social media user’s perceptions of major U.S airlines, we first use the AFINN dictionary to apply a polarity score on individual words from each tweet. Then, after categorizing by airline, we visualize a violin plot to look at the polarity distribution by each airline. What is interesting is that American, Delta, Southwest and United have a large distribution of negative polarity scores, and a median score of -1. In comparison, Alaska Air has a polarity score of 1 and a denser volume of positive polarity scores."
+                     )
                    )
             )
           ),
@@ -134,7 +139,8 @@ ui7 <- fluidPage(
             column(12, align = "center",
                    h4("Sentiment Value Weighted by Frequency of Words in Tweets"),
                    plotOutput("sent2"),
-                   p("Explanation paragraph if we want to include it ;asdkjf ;alkdfj")
+                   p("To closely examine words associated with each airline, we apply the AFINN dictionary to individual words and multiply each polarity score by the frequency of individual words to observe their overall contribution to the text. Like previously stated, we then categorize by airline and sample the top 5 words by the absolute value of word-contribution. Again, American, Delta, Southwest and United airlines have a largely negative word-contribution. With many words relating to boycotts and racism, this visualization indicates how interconnected social issues and politics have become with major U.S airlines. Government bailouts of the airline industry, Covid-19, and the Capitol riots in early January in conjunction with rising media coverage could be major reasons on why the airline industry has become embedded in political and social issues."
+                     )
                    )
             )
           )
@@ -200,7 +206,9 @@ server3 <- function(input, output) {
   })
   
   output$hist2 <- renderPlot({
-    ggplot(planesTop10Airlines, aes(x = MONTH, y = PASSENGERS/1000000, fill = reorder(AIRLINE, -PASSENGERS), color = reorder(AIRLINE, -PASSENGERS))) +
+    planesTop10Airlines %>%
+      filter(!AIRLINE == "Federal Express Corporation", !AIRLINE == "United Parcel Service") %>%
+      ggplot(aes(x = MONTH, y = PASSENGERS/1000000, fill = reorder(AIRLINE, -PASSENGERS), color = reorder(AIRLINE, -PASSENGERS))) +
       geom_line() +
       geom_point(shape=21, color="black", size=3) +
       xlab("Month") +
@@ -242,8 +250,8 @@ server3 <- function(input, output) {
   output$yearCities <- renderPlot({
     citiesData() %>%
       ggplot(aes(x = MONTH, y = avg)) +
-      geom_line() +
-      geom_point(shape=21, color="black", size=3) +
+      geom_line(color = "steelblue") +
+      geom_point(shape=21, fill="steelblue1", size=3) +
       xlab("Month") +
       ylab("Number of Passengers (in Millions)") +
       scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12),
@@ -264,7 +272,8 @@ server3 <- function(input, output) {
       labs(x = "Airlines", y = "AFINN Values") +
       #ggtitle("Tweets Sentiment Value Distribution By Airlines") +
       theme(plot.title = element_text(vjust=2, hjust = 0.5),
-            legend.position =  'none')
+            legend.position =  'none') +
+      scale_color_discrete()
   })
   
   output$sent2 <- renderPlot({
@@ -284,8 +293,9 @@ server3 <- function(input, output) {
       theme(plot.title = element_text(vjust=2, hjust = 0.5),
             axis.title.x = element_text(vjust = -1),
             axis.title.y = element_text(vjust = 1),
-            legend.position =  'none')
-  })
+            legend.position =  'none') +
+      scale_fill_manual(values = c("firebrick2", "steelblue1"))
+    })
   
   output$emo <- renderPlot({
    emotion_plot <- nrc_graph  %>%
@@ -306,3 +316,4 @@ server3 <- function(input, output) {
 }
 
 shinyApp(ui = ui7, server = server3)
+
