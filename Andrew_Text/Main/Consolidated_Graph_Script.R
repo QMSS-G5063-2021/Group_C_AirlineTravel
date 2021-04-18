@@ -90,9 +90,10 @@ weight_plot <- valence %>%
         axis.title.y = element_text(vjust = -5),
         legend.position =  'none')
 
-weight_plot_i <- ggplotly(weight_plot, tooltip = c("contribution","label", "label1"))
+weight_plot_i <- ggplotly(weight_plot, tooltip = c("contribution","label", "label1")) %>% 
+  layout(autosize = F)
 
-
+weight_plot_i 
 
 ######################################
 #Emotion Category GRAPH#

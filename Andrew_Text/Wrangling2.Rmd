@@ -1,0 +1,164 @@
+---
+title: "Final Graphs"
+author: "Andrew Lai"
+date: "08/04/2021"
+output:
+  html_notebook:
+    toc: yes
+    theme: spacelab
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message=FALSE}
+library(tidyverse)
+library(tidytext)
+library(widyr)
+library(ggraph)
+library(igraph)
+library(tidygraph)
+library(plotly)
+```
+
+```{r, message=FALSE, warning=FALSE}
+setwd("~/dataviz2021/Group_Project/Andrew_Text")
+a2021 <- read_csv("airline2021.csv")
+#a2015 <- read_csv("airlinetweets2015.csv")
+```
+
+```{r}
+df <- a2021 %>%
+  select(status_id,created_at,text,
+         mentions_screen_name,location,retweet_count, hashtags)
+```
+
+```{r}
+check <- df %>%
+  mutate(mentions_screen_name = str_extract_all(mentions_screen_name, 
+                                                '(?<=")[A-Za-z]+')) %>%
+   unnest(., mentions_screen_name) %>%
+  mutate(hashtags = str_extract_all(hashtags, '(?<=")[A-Za-z]+')) %>%
+   unnest(., hashtags) %>%
+  group_by(status_id) %>%
+  mutate(mentions_screen_name =
+           ifelse(is.na(mentions_screen_name),hashtags,mentions_screen_name)) %>%
+  mutate(hashtags = 
+           ifelse(is.na(hashtags), mentions_screen_name,hashtags)) %>%
+  mutate(mentions_screen_name = tolower(mentions_screen_name))
+```
+
+
+```{r}
+# Tweets that only reference on airline
+clean <- check %>%
+  filter(str_detect(mentions_screen_name, 
+                    'alaska|delta|united|southwest|americanair')) %>%
+  group_by(status_id) %>%
+  mutate(n = n(),
+         is_dupe = ifelse(n > 1,1,0)) %>%
+  filter(is_dupe == 0) %>%
+  filter(row_number()==1) %>%
+  select(status_id,created_at,text,
+         mentions_screen_name,location,retweet_count) %>%
+  rename(airline = mentions_screen_name) %>%
+  mutate(airline = case_when(airline == "alaskaair" ~ "Alaska",
+                             airline %in% c("americanair","americanairlines",
+                                            "americanairlnes") ~
+                               "American",
+                             airline %in% c("delta", "deltaairline") ~ "Delta",
+                             airline == "southwestair" ~ "Southwest",
+                             airline == "united" ~ "United")) %>%
+  ungroup()
+```
+
+```{r}
+tidy_2021 <- clean %>%
+  mutate(text = tolower(text)) %>%
+  unnest_tokens(output = word, input = text) %>% 
+  anti_join(bind_rows(stop_words, data.frame(word = c("rt", "https"), 
+                                             lexicon = "TWITTER")), 
+            by = "word") %>%
+  mutate(word =  gsub("[[:punct:][:blank:]]+", "", word)) %>%
+  mutate(word = gsub("[0-9]+", "", word)) %>%
+  mutate(word =  gsub("*\\b[[:alpha:]]{1,2}\\b *", "", word)) %>%
+  mutate(word =  gsub("\\b[A-Z]+\\b", "", word)) %>%
+  mutate(word = gsub("^ +| +$|( ) +", "\\1", word)) %>%
+  mutate(word = str_replace(word,"alaska|delta|united|southwest|americanair","")) %>%
+  
+  filter(word != "") %>%
+  count(airline, word, sort = TRUE) 
+```
+
+```{r}
+total_2021 <- clean %>%
+  mutate(text = tolower(text)) %>%
+  unnest_tokens(output = word, input = text) %>% 
+  anti_join(bind_rows(stop_words, data.frame(word = c("rt", "https"), 
+                                             lexicon = "TWITTER")), 
+            by = "word") %>%
+  mutate(word =  gsub("[[:punct:][:blank:]]+", "", word)) %>%
+  mutate(word = gsub("[0-9]+", "", word)) %>%
+  mutate(word =  gsub("*\\b[[:alpha:]]{1,2}\\b *", "", word)) %>%
+  mutate(word =  gsub("\\b[A-Z]+\\b", "", word)) %>%
+  mutate(word = gsub("^ +| +$|( ) +", "\\1", word)) %>%
+  mutate(word = str_replace(word,"alaska|delta|united|southwest|americanair","")) %>%
+  
+  filter(word != "") %>%
+  count(airline, word, sort = TRUE) %>%
+  group_by(airline) %>% 
+  summarize(total = sum(n))
+```
+
+```{r}
+tidy_2021 <- left_join(tidy_2021, total_2021, by = 'airline')
+```
+
+
+```{r}
+valence <- inner_join(tidy_2021, get_sentiments("afinn"), by = "word")
+violin_plot <- ggplot(valence, aes(x = airline, y = value, color = airline)) + 
+  geom_violin( show.legend = FALSE) + 
+  geom_boxplot(width=.1) +
+  scale_y_continuous(breaks = seq(-5, 5, by = 1)) +
+  labs(x = "Airlines", y = "AFINN Values") +
+  ggtitle("Tweets Sentiment Value Distribution By Airlines") +
+  theme(plot.title = element_text(vjust=2, hjust = 0.5),
+        legend.position =  'none')
+
+violin_plot
+```
+
+
+```{r}
+weight_plot <- valence %>%
+  mutate(Contribution = n * value) %>%
+  rename(Freq = n) %>%
+  rename(Polarity = value) %>%
+  group_by(airline) %>%
+  slice_head(n = 5) %>%
+  arrange(((Contribution))) %>%
+  mutate(word = reorder(word, Contribution)) %>%
+  ggplot(aes(x = Contribution, y = reorder(word, Contribution), 
+             fill = Contribution > 0, label = Freq, label1 = Polarity)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~airline, ncol = 2, scales = "free") +
+  labs(x = "Sentiment Value * Number of Appearances",
+       y = 'Top 5 Words From Tweets') +
+  ggtitle("Sentiment Value Weighted by Frequency of Words in Tweets") +
+  theme(plot.title = element_text(vjust=2, hjust = 0.5),
+        axis.title.x = element_text(vjust = -5),
+        axis.title.y = element_text(vjust = -5),
+        legend.position =  'none')
+
+weight_plot
+```
+
+```{r}
+weight_plot_i <- 
+  ggplotly(weight_plot, tooltip = c("contribution","label", "label1")) %>% 
+  layout(autosize = F)
+
+weight_plot_i 
+```
