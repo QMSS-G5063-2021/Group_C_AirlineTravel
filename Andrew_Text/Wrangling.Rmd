@@ -130,25 +130,37 @@ violin_plot
 
 ```{r}
 weight_plot <- valence %>%
-  mutate(contribution = n * value) %>%
+  mutate(Contribution = n * value) %>%
+  rename(Freq = n) %>%
+  rename(Polarity = value) %>%
   group_by(airline) %>%
   slice_head(n = 5) %>%
-  arrange(((contribution))) %>%
-  mutate(word = reorder(word, contribution)) %>%
-  ggplot(aes(x = contribution, y = reorder(word, contribution), 
-             fill = contribution > 0)) +
+  arrange(((Contribution))) %>%
+  mutate(word = reorder(word, Contribution)) %>%
+  ggplot(aes(x = Contribution, y = reorder(word, Contribution), 
+             fill = Contribution > 0, label = Freq, label1 = Polarity)) +
   geom_col(show.legend = FALSE) +
   facet_wrap(~airline, ncol = 2, scales = "free") +
   labs(x = "Sentiment Value * Number of Appearances",
        y = 'Top 5 Words From Tweets') +
   ggtitle("Sentiment Value Weighted by Frequency of Words in Tweets") +
   theme(plot.title = element_text(vjust=2, hjust = 0.5),
-        axis.title.x = element_text(vjust = -1),
-        axis.title.y = element_text(vjust = 1),
+        axis.title.x = element_text(vjust = -5),
+        axis.title.y = element_text(vjust = -5),
         legend.position =  'none')
 
 weight_plot
 ```
+
+```{r}
+weight_plot_i <- 
+  ggplotly(weight_plot, tooltip = c("contribution","label", "label1"))
+
+
+```
+
+
+
 
 ```{r}
 nrc_graph <- inner_join(tidy_2021, get_sentiments("nrc"), by = "word")
