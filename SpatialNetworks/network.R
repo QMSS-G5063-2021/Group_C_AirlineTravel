@@ -389,7 +389,7 @@ network <- function(start=1,end=6,min_corr=0.9995, min_importance=6, min_pop=1e6
                                    col_number()))
   states <- read_csv("DOT/us_states.csv") %>% select(-State)
 
-  snodes <- nodes %>% filter(nodes$label %in% df_wider3$ORIGIN_CITY_NAME | nodes$label %in% df_wider3$DEST_CITY_NAME) %>%
+  nodes <- nodes %>% filter(nodes$label %in% df_wider3$ORIGIN_CITY_NAME | nodes$label %in% df_wider3$DEST_CITY_NAME) %>%
   mutate(id = 1:n())
 
   nodes1 <- nodes %>% left_join(df_wider4,by=c("label"="City"))
@@ -406,7 +406,7 @@ network <- function(start=1,end=6,min_corr=0.9995, min_importance=6, min_pop=1e6
 
   dim(only_sig)
 
-  colors <- tibble(importance = 1:8, color = c("pink","purple","aquamarine","green","#e6e600","peru","silver","gold")) %>% filter(importance >= upd_min_importance)
+  colors <- tibble(importance = 1:8, color = c("pink","purple","aquamarine","green","#8f99fb","peru","silver","gold")) %>% filter(importance >= upd_min_importance)
 
   nodes_sig <-  labels %>% left_join(cities_matrix,by="label") %>% left_join(colors,by="importance") %>% select(id,label,importance, color) %>%
     mutate(title=label) %>%
@@ -415,7 +415,7 @@ network <- function(start=1,end=6,min_corr=0.9995, min_importance=6, min_pop=1e6
 
 
   nodes_unique <-  data.frame(label = as.character(1:8),
-                            shape = c( "circle"), color = c("pink","purple","aquamarine","green","#e6e600","peru","silver","gold"), City = 1:8, size=50) %>%
+                            shape = c( "circle"), color = c("pink","purple","aquamarine","green","#8f99fb","peru","silver","gold"), City = 1:8, size=50) %>%
   filter(City >= upd_min_importance)  %>%
     mutate(label = (8-upd_min_importance+1):1) %>%
     arrange(label) %>%
