@@ -17,13 +17,16 @@ ui7 <- fluidPage(
       mainPanel(
         h4("by Andrew Lai, Ian Lightfoot, Charlie Levitz, Jason Mares"),
         p("We sought to explore how air traffic and the airline industry was impacted by the coronavirus. To what extent did Americans stop flying during the spring of 2020? And how does this impact people's perception of the airlines and flying in the United States?"
-          )
+          ),
+        p("Airline Data from Bureau of Transportation Statistics: https://www.transtats.bts.gov/Fields.asp?gnoyr_VQ=FIL"
+        ),
+        p("Twitter data from Twitter API: https://developer.twitter.com/en/docs/twitter-api")
       )
     ),
     
     # Static Graphs -------------------------------------------------------------------------------------------
     tabPanel(
-      "Static",
+      "Passenger Traffic",
       tabsetPanel(
         type = "tabs",
         tabPanel(
@@ -55,7 +58,7 @@ ui7 <- fluidPage(
                         label = "Destination City",
                         choices = cities2
             ),
-            p("This graph displays the average passengers per month, and how that average changes depending on which years you are averaging. Pay special attention to the month of April when the year of 2020 is or is not included. And try manipulating the origin and destination cities to see how this effect may differ depending on the airport!"
+            p("This graph displays the average passengers per month, and how that average changes depending on which years are being averaged. For example, the graph defaults to averaging from all of 2015-2020. If you adjust the right side of the slider to 2018, then the averages will exclude data from 2019 and 2020.  Pay special attention to the month of April when the year of 2020 is or is not included. And try manipulating the origin and destination cities to see how this effect may differ depending on the airport!"
               )
           ),
           mainPanel(
@@ -68,7 +71,7 @@ ui7 <- fluidPage(
     
     # Networks -------------------------------------------------------------------------------------------
     tabPanel(
-      "Networks",
+      "Air Travel Networks",
       tabsetPanel(
         type = "tabs",
         tabPanel(
@@ -119,11 +122,11 @@ ui7 <- fluidPage(
     
     # Text Analysis -------------------------------------------------------------------------------------------
     tabPanel(
-      "Text",
+      "Airline Twitter Analysis",
       tabsetPanel(
         type = "tabs",
         tabPanel(
-          "Airline Twitter Sentiment",
+          "Tweet Sentiment",
           fluidRow(
             column(12, align = "center",
                    h4("Airline Tweets' Sentiment Value Distribution"),

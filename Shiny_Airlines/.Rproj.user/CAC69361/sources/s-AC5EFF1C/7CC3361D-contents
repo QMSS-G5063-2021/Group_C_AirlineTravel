@@ -1,0 +1,218 @@
+#library(readr)
+#library(dplyr)
+#library(ggplot2)
+library(readxl)
+library(tidyverse)
+library(corrplot)
+library(psych)
+library(lmerTest)
+library(pastecs)
+library(stats)
+############################################## Ratings #####################################################
+
+csep <- read_xlsx("~/Documents/Columbia/THESIS MATERIALS/CSEP Colleague.xlsx") %>% 
+  select(starts_with("cq") | starts_with("g") | starts_with("New"), -GendS) %>%
+  lapply(as.numeric) %>%
+  data.frame() %>%
+  rename(gives = cq61, solicits = cq28) # load CSEP data and tidy 
+
+# Provides regular, direct feedback on how to improve performance (61) GIVES FEEDBACK
+  # scale of 1-7
+# Actively solicits feedback and suggestions from others  (28) SOLICITS FEEDBACK
+  # scale of 1-7
+# Gender, 1 = female, 0 = male
+# NewID is unique identifier
+
+summary(lm(solicits ~ Gender, data = csep))
+# on average, women were rated a quarter of a point (.25) higher than men on soliciting feedback
+# statistically significant at p = .000899
+
+summary(lm(gives ~ Gender, data = csep))
+# on average, women were rated .178 of a point higher than men on giving feedback
+# statistically significant at p = .0231
+
+csep %>%
+  rename(aSolicits = solicits, aGives = gives, zGender = Gender) %>% # organizing for corrplot
+  select(aSolicits, aGives, cq13, cq16, cq19, cq23, cq36, cq38, 
+       cq59, cq6, cq60, cq62, cq39, cq40, cq41, cq51) %>%
+  cor(use = "complete.obs") %>%
+  corrplot(method = "color", type = "upper", order = "alphabet", addCoef.col = "black")
+
+
+csep %>% 
+  select(-Gender, -NewID) %>%
+  alpha() # alpha of .97...?
+
+# RATERS = LEVEL 1
+# RATEES = LEVEL 2
+
+# UNCONDITIONAL MODEL/VARIANCE COMPONENTS MODEL: 
+# Is there variability in giving feedback ratings among executives?
+emptyGives <- lmer(gives ~ (1|NewID), data=csep)
+summary(emptyGives)
+  # variance component for level-2 variable (NewID) = .3
+  # variability left unexplained = 1.77 (level-1 variance component)
+performance::icc(emptyGives)
+# 14.5% of total variability in ratings is between the executives being rated (level 2) 
+  # Intraclass correlation coefficient (ICC):
+      # amount of variance in the DV that occurs at level 2 (person) versus level 1 (rater)
+
+emptySolicits <- lmer(solicits ~ (1|NewID), data = csep)
+summary(emptySolicits)
+  # variance component for level-2 variable (NewID) = .26
+  # variability left unexplained = 1.53 (level-1 variance component)
+performance::icc(emptySolicits)
+# 14.5% of total variability in ratings is between the executives being rated (level 2) 
+
+
+# RANDOM EFFECTS MODEL
+randomGives <- lmer(gives ~ Gender + (1|NewID), data=csep)
+summary(randomGives)
+# women were rated .2 points higher than men on giving feedback
+# statistically significant p = .0358
+performance::icc(randomGives)
+# ICC (Rho) didn't change though......
+
+
+
+randomSolicits <- lmer(solicits ~ Gender + (1 | NewID), data = csep)
+summary(randomSolicits)
+# women were rated a quarter of a point (.25) higher than men on soliciting feedback
+# statistically significant p = .00789
+performance::icc(randomSolicits)
+# ICC (Rho) decreases from .145 to .14
+
+
+
+
+# Descriptive Stats
+fig1 <- round(stat.desc(csep), 3)
+fig1 <- fig1[4:9,]
+fig1 <- fig1[-4, 2:4] # 
+
+a <- mean(csep$gives, na.rm = TRUE) # average gives
+sd(csep$gives, na.rm = TRUE)
+b <- mean(csep$solicits, na.rm = TRUE) # average solicits
+cc <- filter(csep, Gender == 1)
+c <- mean(cc$gives, na.rm = TRUE) # average female gives
+dd <- filter(csep, Gender == 0)
+d <- mean(dd$gives, na.rm = TRUE) # average male gives
+ee <- filter(csep, Gender == 0)
+e <- mean(ee$solicits, na.rm = TRUE) # average male solicits
+ff <- filter(csep, Gender == 1)
+f <- mean(ff$solicits, na.rm = TRUE) # average female solicits
+
+
+all <-csep %>% #whole sample
+  select(gives, solicits, Gender) %>%
+  #filter(Gender == 1) %>% 
+  mutate(Avg_Solicits = mean(solicits, na.rm = TRUE),
+         SD_Solicits = sd(solicits, na.rm = TRUE),
+         Avg_Gives = mean(gives, na.rm = TRUE),
+         SD_Gives = sd(gives, na.rm = TRUE)) %>%
+  select(Avg_Solicits, SD_Solicits, Avg_Gives, SD_Gives) %>%
+  unique()
+
+female <- csep %>% #female
+  select(gives, solicits, Gender) %>%
+  filter(Gender == 1) %>% 
+  mutate(Avg_Solicits = mean(solicits, na.rm = TRUE),
+         SD_Solicits = sd(solicits, na.rm = TRUE),
+         Avg_Gives = mean(gives, na.rm = TRUE),
+         SD_Gives = sd(gives, na.rm = TRUE)) %>%
+  select(Avg_Solicits, SD_Solicits, Avg_Gives, SD_Gives) %>%
+  unique()
+
+male <- csep %>% #male
+  select(gives, solicits, Gender) %>%
+  filter(Gender == 0) %>% 
+  mutate(Avg_Solicits = mean(solicits, na.rm = TRUE),
+         SD_Solicits = sd(solicits, na.rm = TRUE),
+         Avg_Gives = mean(gives, na.rm = TRUE),
+         SD_Gives = sd(gives, na.rm = TRUE)) %>%
+  select(Avg_Solicits, SD_Solicits, Avg_Gives, SD_Gives) %>%
+  unique() 
+
+mean_sd <- all %>%
+  bind_rows(female) %>%
+  bind_rows(male)
+
+rm(all, male, female)
+
+rownames(mean_sd) <- c("Whole Sample", "Women", "Men")
+mean_sd
+############################################## Scenarios ##################################################
+
+# Load data
+scenarios <- read_xlsx("~/Documents/Columbia/THESIS MATERIALS/Scenario_Data.xlsx")
+
+#personality <- read_xlsx("~/Desktop/THESIS MATERIALS/Personality_Data.xlsx") 
+
+# Select relevant variables
+scenarios <- scenarios %>%
+  select(Q25, Q22_0_GROUP:Q22_2_GROUP, Q23_0_GROUP:Q23_2_GROUP)
+
+# Convert to numeric
+scenarios$Q22_0_GROUP <- as.numeric(scenarios$Q22_0_GROUP)
+scenarios$Q22_1_GROUP <- as.numeric(scenarios$Q22_1_GROUP)
+scenarios$Q22_2_GROUP <- as.numeric(scenarios$Q22_2_GROUP)
+scenarios$Q23_0_GROUP <- as.numeric(scenarios$Q23_0_GROUP)
+scenarios$Q23_1_GROUP <- as.numeric(scenarios$Q23_1_GROUP)
+scenarios$Q23_2_GROUP <- as.numeric(scenarios$Q23_2_GROUP)
+
+# Remove missing values
+scenarios <- filter(scenarios, !is.na(Q22_0_GROUP))
+scenarios <- filter(scenarios, !is.na(Q22_1_GROUP))
+scenarios <- filter(scenarios, !is.na(Q22_2_GROUP))
+scenarios <- filter(scenarios, !is.na(Q23_0_GROUP))
+scenarios <- filter(scenarios, !is.na(Q23_1_GROUP))
+scenarios <- filter(scenarios, !is.na(Q23_2_GROUP))
+
+length(unique(scenarios$Q25)) # We see there are 315 unique ID codes but 325 total rows
+
+scenarios <- distinct(scenarios, Q25, .keep_all = TRUE) # Eliminates duplicate rows
+
+race <- read_xlsx("~/Documents/Columbia/THESIS MATERIALS/Ethnicity_Race_Data.xlsx") %>%
+  mutate(Q25 = str_c(Last, First, sep = ",")) %>% # creating new, joinable unique identifier
+  select(-c(First, Last)) # load race and ethnicity data
+
+gender <- read_xlsx("~/Documents/Columbia/THESIS MATERIALS/Gender_Age_Data.xlsx") %>%
+  select(ID, Gender, Age) # 1 = male 0 = female
+
+scenarios <- scenarios %>%
+  left_join(race, by = "Q25") %>%
+  left_join(gender, by = "ID") %>%
+  select(-c(ID, Q25, Race, Country)) %>%
+  rename(Race = "Ethnicity (Hispanic Origin") %>%
+  filter(!is.na(Race), !is.na(Gender), !is.na(Age)) 
+
+rm(gender, race) # clean up global environment
+
+scenarios <- scenarios %>%
+  mutate(White = ifelse(Race == "White", 1, 0)) # Create binary race variable
+
+scenarios$Age <- as.numeric(scenarios$Age) # Coerce Age variable to numeric
+
+scenarios <- scenarios %>%
+  mutate(constructive = ifelse(Q22_0_GROUP == 1, 1, 0), # making outcome variables binary for simpler interpretation
+         neutral = ifelse(Q22_1_GROUP == 1, 1, 0),
+         positive = ifelse(Q22_2_GROUP == 1, 1, 0)) %>%
+  select(Gender, Age, White, Q22_0_GROUP:Q22_2_GROUP, constructive:positive) # final cleaned dataset!
+
+# Q22_0_GROUP: CONSTRUCTIVE
+# Q22_1_GROUP: NEUTRAL (HONEST AND OPEN)
+# Q22_2_GROUP: POSITIVE
+  # 1 = most desirable, 2 = somewhat desirable, 3 = least desirable
+# 1 = male, 0 = female
+summary(glm(constructive ~ Gender + Age + White, data = scenarios))
+summary(lm(neutral ~ Gender + Age + White, data = scenarios))
+summary(lm(positive ~ Gender + Age + White, data = scenarios))
+
+ggplot(scenarios, aes(Q22_0_GROUP)) +
+  geom_bar()
+ggplot(scenarios, aes(Q22_1_GROUP)) +
+  geom_bar()
+ggplot(scenarios, aes(Q22_2_GROUP)) +
+  geom_bar()
+
+
