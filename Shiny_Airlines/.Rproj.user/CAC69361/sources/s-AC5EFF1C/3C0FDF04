@@ -1,0 +1,32 @@
+{
+    "id": "3C0FDF04",
+    "path": null,
+    "project_path": null,
+    "type": "r_dataframe",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1619139556568.0,
+    "source_on_save": false,
+    "relative_order": 4,
+    "properties": {
+        "expression": "planes_all",
+        "caption": "planes_all",
+        "totalObservations": 1444150,
+        "displayedObservations": 1444150,
+        "variables": 5,
+        "cacheKey": "7E4F8107",
+        "object": "planes_all",
+        "environment": "",
+        "contentUrl": "grid_resource/gridviewer.html?env=&obj=planes_all&cache_key=7E4F8107&max_cols=50",
+        "preview": 0
+    },
+    "folds": "",
+    "lastKnownWriteTime": 216122975819740060,
+    "encoding": "",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1619139556568,
+    "read_only": false,
+    "read_only_alternatives": []
+}

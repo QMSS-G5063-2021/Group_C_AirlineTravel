@@ -16,11 +16,28 @@ ui7 <- fluidPage(
       "About",
       mainPanel(
         h4("by Andrew Lai, Ian Lightfoot, Charlie Levitz, Jason Mares"),
-        p("We sought to explore how air traffic and the airline industry was impacted by the coronavirus. To what extent did Americans stop flying during the spring of 2020? And how does this impact people's perception of the airlines and flying in the United States?"
+        p("After the implementation of the first national shutdown in the United States on April 2020, all aspects of American life came to a halt, particularly airline travel. Using air traffic and airline data, we sought to explore how air traffic and the airline industry in the United States was impacted by the coronavirus pandemic. We address this inquiry by breaking down our findings into three main sub-topics:"
           ),
-        p("Airline Data from Bureau of Transportation Statistics: https://www.transtats.bts.gov/Fields.asp?gnoyr_VQ=FIL"
-        ),
-        p("Twitter data from Twitter API: https://developer.twitter.com/en/docs/twitter-api")
+        strong("1. Passenger volume across airlines and airport cities:"
+           ),
+        p("We first tackle this exploration by looking at the raw passenger volumes across airlines and airport cities. We investigate whether travel across airlines were affected throughout 2020 and whether the most popular airlines retain their popularity throughout the year. In addition, we allow the reader to explore the historical trends of average monthly air travel taking place between cities from 2015 to 2020."
+          ),
+        strong("2. Changes in the Air Travel Network"
+               ),
+        p("We next consider whether changes in air passenger volume throughout the continental United States is felt uniformly across the country in the first half of 2020. Under this sub-topic, we examine the homogeneity and heterogeneity in monthly changes of air passenger volume across routes of varying length throughout the United States. In addition, we look into correlation networks to isolate airport cities that saw highly similar patterns in monthly changes in airline passenger volume."
+          ),
+        strong("3. Airline Sentiment"
+               ),
+        p("Lastly, we employ text analysis to examine the reputation of airlines during 2020. Not only was the coronavirus pandemic a concern for airlines, but some airlines found themselves in the middle of political scandals. We look into Twitter to evaluate the sentiment of tweets toward the top U.S. airlines, as well as the words that are the most associated with airlines."
+          ),
+        p("Airline Data from Bureau of Transportation Statistics:",
+          a("https://www.transtats.bts.gov/Fields.asp?gnoyr_VQ=FIL"
+            )
+          ),
+        p("Twitter data from Twitter API:",
+          a("https://developer.twitter.com/en/docs/twitter-api"
+            )
+          ),
       )
     ),
     
@@ -80,7 +97,7 @@ ui7 <- fluidPage(
             column(12, align = "center",
                    h4("Monthly Change in Domestic Air Traffic Routes in 2020"),
                    h5("Growth rates are capped at -100% and 100%"),
-                   plotOutput("maps", height = "450px"),
+                   plotOutput("maps", height = "550px"),
                    selectInput(inputId = "Month1",
                                label = "Choose a Month",
                                choices = month)
@@ -90,9 +107,12 @@ ui7 <- fluidPage(
             column(12, align = "center",
                    p("The graphs above show the month-to-month change in passenger traffic along domestic routes throughout the continental United States. Maps are separated by the distances of the routes for the readability of the viewer but also to observe whether routes of different lengths were affected the same by the pandemic. Shorter flights may be viewed as safer since passengers do not spend as much time isolated in a cylindrical contained. In addition, long-distance flights are often taken by business passengers thus the changes in passenger traffic along these of flights may be correlated with the decline in employment seen in the U.S. during the first quarter of 2020. "
                      ),
-                   p("After the holiday season in December 2019, air traffic volume rebounded to average levels throughout the country. Although the news of coronavirus reached Americans in early 2020, air traffic volume was not terribly impacted. In fact, the monthly changes in air passengers throughout domestic routes from January and February varied throughout the country, with travel decreasing from the end of the holiday season in January. However, March and April saw heavy hits in air traffic due to the nation-wide shutdown of businesses, schools, etc. May and June saw immediate recovery in most places as restrictions were slightly loosened in certain areas of the country. The opening of the country was attributed to shutdown weariness and anxiousness to spend time outside with summer beginning.")
+                   p("After the holiday season in December 2019, air traffic volume rebounded to average levels throughout the country. Although the news of coronavirus reached Americans in early 2020, air traffic volume was not terribly impacted. In fact, the monthly changes in air passengers throughout domestic routes from January and February varied throughout the country, with travel decreasing from the end of the holiday season in January. However, March and April saw heavy hits in air traffic due to the nation-wide shutdown of businesses, schools, etc. May and June saw immediate recovery in most places as restrictions were slightly loosened in certain areas of the country. The opening of the country was attributed to shutdown weariness and anxiousness to spend time outside with summer beginning."
+                     ),
+                   p("We also examined patterns in monthly changes in air passenger traffic across the top U.S. airport cities. To do this, networks were constructed from a correlation matrix of airport cities and their monthly changes in passengers traveling through the city’s airports. Throughout all configurations of the networks, monthly changes for the majority of airports are highly correlated, regardless of geographic region. In fact, there is often a central cluster in the network which highlights how airline traffic is felt almost uniformly across all airports. However, there are some time periods where airport cities in the same economic region often experienced the same patterns in monthly changes of air passenger volume."
+                     )
+                   )
             )
-          )
         ),
         tabPanel(
           "Interactive Networks", fluid = TRUE,
@@ -141,7 +161,7 @@ ui7 <- fluidPage(
           fluidRow(
             column(12, align = "center",
                    h4("Sentiment Value Weighted by Frequency of Words in Tweets"),
-                   plotOutput("sent2"),
+                   plotlyOutput("sent2"),
                    p("To closely examine words associated with each airline, we apply the AFINN dictionary to individual words and multiply each polarity score by the frequency of individual words to observe their overall contribution to the text. Like previously stated, we then categorize by airline and sample the top 5 words by the absolute value of word-contribution. Again, American, Delta, Southwest and United airlines have a largely negative word-contribution. With many words relating to boycotts and racism, this visualization indicates how interconnected social issues and politics have become with major U.S airlines. Government bailouts of the airline industry, Covid-19, and the Capitol riots in early January in conjunction with rising media coverage could be major reasons on why the airline industry has become embedded in political and social issues."
                      )
                    )
@@ -256,7 +276,7 @@ server3 <- function(input, output) {
       geom_line(color = "steelblue") +
       geom_point(shape=21, fill="steelblue1", size=3) +
       xlab("Month") +
-      ylab("Number of Passengers (in Millions)") +
+      ylab("Number of Passengers") +
       scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12),
                          labels = c("January","February",
                                     "March","April","May","June",
@@ -279,8 +299,8 @@ server3 <- function(input, output) {
       scale_color_discrete()
   })
   
-  output$sent2 <- renderPlot({
-    valence %>%
+  output$sent2 <- renderPlotly({
+    freqWord <- valence %>%
       mutate(contribution = n * value) %>%
       group_by(airline) %>%
       slice_head(n = 5) %>%
@@ -298,24 +318,9 @@ server3 <- function(input, output) {
             axis.title.y = element_text(vjust = 1),
             legend.position =  'none') +
       scale_fill_manual(values = c("firebrick2", "steelblue1"))
+    freqWord <- ggplotly(freqWord, tooltip = c("contribution","label", "label1")) %>% 
+    layout(autosize = F)   
     })
-  
-  output$emo <- renderPlot({
-   emotion_plot <- nrc_graph  %>%
-      group_by(airline, sentiment) %>%
-      summarise(Freq=n(), .groups = 'drop') %>%
-      ggplot(aes(Freq, reorder(sentiment, Freq), fill = airline)) +
-      geom_col(show.legend = TRUE) +
-      labs(x = "Frequency",
-           y = 'Emotion Category',
-           fill = "Airline") +
-      ggtitle("Emotion Category by Frequency of Words in Tweets") +
-      theme(plot.title = element_text(vjust=2, hjust = 0.5),
-            axis.title.x = element_text(vjust = -1),
-            axis.title.y = element_text(vjust = 1))
-    #emotion_plot <- ggplotly(emotion_plot, tooltip = c("x"))
-    emotion_plot
-  })
 }
 
 shinyApp(ui = ui7, server = server3)
