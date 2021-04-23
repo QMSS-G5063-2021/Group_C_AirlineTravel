@@ -109,8 +109,6 @@ ui7 <- fluidPage(
                      ),
                    p("After the holiday season in December 2019, air traffic volume rebounded to average levels throughout the country. Although the news of coronavirus reached Americans in early 2020, air traffic volume was not terribly impacted. In fact, the monthly changes in air passengers throughout domestic routes from January and February varied throughout the country, with travel decreasing from the end of the holiday season in January. However, March and April saw heavy hits in air traffic due to the nation-wide shutdown of businesses, schools, etc. May and June saw immediate recovery in most places as restrictions were slightly loosened in certain areas of the country. The opening of the country was attributed to shutdown weariness and anxiousness to spend time outside with summer beginning."
                      ),
-                   p("We also examined patterns in monthly changes in air passenger traffic across the top U.S. airport cities. To do this, networks were constructed from a correlation matrix of airport cities and their monthly changes in passengers traveling through the city’s airports. Throughout all configurations of the networks, monthly changes for the majority of airports are highly correlated, regardless of geographic region. In fact, there is often a central cluster in the network which highlights how airline traffic is felt almost uniformly across all airports. However, there are some time periods where airport cities in the same economic region often experienced the same patterns in monthly changes of air passenger volume."
-                     )
                    )
             )
         ),
@@ -133,6 +131,12 @@ ui7 <- fluidPage(
                                         label = "Choose Ending Month",
                                         choices = endingMonth)
                      )
+                   ),
+                   fluidRow(
+                     column(12, align = "center",
+                            p("We also examined patterns in monthly changes in air passenger traffic across the top U.S. airport cities. To do this, networks were constructed from a correlation matrix of airport cities and their monthly changes in passengers traveling through the city’s airports. Throughout all configurations of the networks, monthly changes for the majority of airports are highly correlated, regardless of geographic region. In fact, there is often a central cluster in the network which highlights how airline traffic is felt almost uniformly across all airports. However, there are some time periods where airport cities in the same economic region often experienced the same patterns in monthly changes of air passenger volume."
+                              )
+                            )
                    )
             )
           )
