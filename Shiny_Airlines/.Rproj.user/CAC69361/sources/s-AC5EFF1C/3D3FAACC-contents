@@ -161,11 +161,15 @@ ui7 <- fluidPage(
           fluidRow(
             column(12, align = "center",
                    h4("Sentiment Value Weighted by Frequency of Words in Tweets"),
-                   plotlyOutput("sent2"),
+                   plotOutput("sent2"),
+                   )
+            ),
+          fluidRow(
+            column(12, align = "center",
                    p("To closely examine words associated with each airline, we apply the AFINN dictionary to individual words and multiply each polarity score by the frequency of individual words to observe their overall contribution to the text. Like previously stated, we then categorize by airline and sample the top 5 words by the absolute value of word-contribution. Again, American, Delta, Southwest and United airlines have a largely negative word-contribution. With many words relating to boycotts and racism, this visualization indicates how interconnected social issues and politics have become with major U.S airlines. Government bailouts of the airline industry, Covid-19, and the Capitol riots in early January in conjunction with rising media coverage could be major reasons on why the airline industry has become embedded in political and social issues."
-                     )
                    )
             )
+          )
           )
         )
       )
@@ -299,8 +303,8 @@ server3 <- function(input, output) {
       scale_color_discrete()
   })
   
-  output$sent2 <- renderPlotly({
-    freqWord <- valence %>%
+  output$sent2 <- renderPlot({
+    valence %>%
       mutate(contribution = n * value) %>%
       group_by(airline) %>%
       slice_head(n = 5) %>%
@@ -314,12 +318,10 @@ server3 <- function(input, output) {
            y = 'Top 5 Words From Tweets') +
       #ggtitle("Sentiment Value Weighted by Frequency of Words in Tweets") +
       theme(plot.title = element_text(vjust=2, hjust = 0.5),
-            axis.title.x = element_text(vjust = -1),
+            #axis.title.x = element_text(vjust = -1),
             axis.title.y = element_text(vjust = 1),
             legend.position =  'none') +
       scale_fill_manual(values = c("firebrick2", "steelblue1"))
-    freqWord <- ggplotly(freqWord, tooltip = c("contribution","label", "label1")) %>% 
-    layout(autosize = F)   
     })
 }
 

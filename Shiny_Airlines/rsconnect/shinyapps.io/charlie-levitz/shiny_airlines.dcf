@@ -5,7 +5,7 @@ account: charlie-levitz
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3987678
-bundleId: 4487426
+bundleId: 4507779
 url: https://charlie-levitz.shinyapps.io/shiny_airlines/
-when: 1618769086.41961
-lastSyncTime: 1618769086.41964
+when: 1619143089.24834
+lastSyncTime: 1619143089.24835
